@@ -1,51 +1,85 @@
-# To scrape Instagram Posts by Hashtag
-import instaloader
-from datetime import datetime
-from itertools import dropwhile, takewhile
-import csv
+from pathlib import Path  # pathlib: module, Path: class. Checking if a path exist
+from typing import Optional, List, Dict, Tuple  # typing: support for type hint
+import pandas as pd
+import numpy as np
+import collections  # This module contains different datatype to process the data: dict, list, set, and tuple.
+
+__all__ = ['select_df']  # only import 'select_df'
 
 
-class GetInstagramProfile():
-    def __init__(self) -> None:
-        self.L = instaloader.Instaloader()
+def select_df(df: pd.DataFrame,
+              rename_mapping: Dict[str, str] = None,
+              column_drop: Optional[List[str]] = None,
+              save_path: Optional[Path] = None) -> pd.DataFrame:
+    df = df.copy()
 
-    def download_posts_with_hashtags(self, hashtag):
-        SINCE = datetime(2017, 1, 1)
-        UNTIL = datetime(2023, 7, 1)
+    # Find all JSON files in the specified folder
+    json_folder = Path('/Users/wei/Google 雲端硬碟/Job Application 2023/CARA Network/AMR/')
+    json_files = json_folder.glob('*.json')
 
-        # 搜尋包含特定hashtag的貼文
-        for post in instaloader.Hashtag.from_name(self.L.context, hashtag).get_posts():
-            self.L.download_post(post, target='#' + hashtag)
-
-            # 擷取tag為特定hashtag的貼文中的username
-            for tagged_user in post.get_likes():
-                username = tagged_user.username
-                # 下載該使用者的貼文
-                user_posts = instaloader.Profile.from_username(self.L.context, username).get_posts()
-                for user_post in takewhile(lambda p: p.date > SINCE, dropwhile(lambda p: p.date > UNTIL, user_posts)):
-                    self.L.download_post(user_post, username)
-
-    def get_post_info_csv(self, username):
-        with open(username + '.csv', 'w', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            posts = instaloader.Profile.from_username(self.L.context, username).get_posts()
-            for post in posts:
-                print("post date: " + str(post.date))
-                print("post profile: " + post.profile)
-                print("post caption: " + post.caption)
-                print("post location: " + str(post.location))
-
-                posturl = "https://www.instagram.com/p/" + post.shortcode
-                print("post url: " + posturl)
-                writer.writerow(
-                    ["post", post.mediaid, post.profile, post.caption, post.date, post.location, posturl, post.typename,
-                     post.mediacount, post.caption_hashtags, post.caption_mentions, post.tagged_users, post.likes,
-                     post.comments, post.title, post.url])
-
-                print("\n\n")
+    for json_file in json_files:
+        try:
+            # Load the JSON file as a Pandas DataFrame
+            json_data = pd.read_json(json_file)
+            # Perform any necessary operations on the DataFrame
+            if rename_mapping is not None:
+                json_data = json_data.rename(columns=rename_mapping)
+            if column_drop is not None:
+                json_data = json_data.drop(columns=column_drop)
 
 
-if __name__ == "__main__":
-    cls = GetInstagramProfile()
-    cls.download_posts_with_hashtags("amr")
-    cls.get_post_info_csv("test")
+        except (FileNotFoundError, IOError) as e:
+            print(f"Error: Failed to load the JSON file {json_file}.")
+            print(e)
+            exit()
+        except ValueError as e:
+            print(f"Error: Failed to parse the JSON file {json_file}.")
+            print(e)
+            exit()
+
+
+     # Get the save path for the CSV file
+    if save_path is not None:
+        csv_file = json_file.with_suffix('.csv')
+        save_path = json_folder / csv_file.name
+        json_data.to_csv(save_path)
+    return df
+
+
+# Extract captions and URLs
+def extract_data(posts):
+    captions = []
+    urls = []
+    for i, post in enumerate(posts, start=1):
+        if 'caption' in post:
+            caption = f"{i}. {post['caption']}"
+            if caption not in captions:  # Check for duplicate captions
+                captions.append(caption)
+        if 'url' in post:
+            url = f"{i}. {post['url']}"
+            if url not in urls:  # Check for duplicate URLs
+                urls.append(url)
+    return captions, urls
+
+    df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions))
+
+    # Save the modified DataFrame to a CSV file
+    if save_path is not None:
+        df.to_csv(save_path)
+
+    # Print the captions and URLs for easy reference
+    for i, (captions, urls) in enumerate(zip(df['Caption'], df['URL']), start=1):
+        print(f"Post {i}:")
+        for caption in captions:
+            print(f"  Caption: {caption}")
+        for url in urls:
+            print(f"  URL: {url}")
+        print()
+
+    # Print a success message
+    print("Data successfully processed and saved to modified_test.csv.")
+
+
+if __name__ == '__main__':
+    df = pd.read_json('/Users/wei/Google 雲端硬碟/Job Application 2023/CARA Network/AMR')
+select_df(df)
