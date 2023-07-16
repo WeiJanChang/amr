@@ -1,85 +1,38 @@
 from pathlib import Path  # pathlib: module, Path: class. Checking if a path exist
 from typing import Optional, List, Dict, Tuple  # typing: support for type hint
 import pandas as pd
-import numpy as np
-import collections  # This module contains different datatype to process the data: dict, list, set, and tuple.
+import pandas as pd
+from pathlib import Path
+from typing import Union
+def load_json(p: Union[Path, str]) -> pd.DataFrame:
+    """
+    load json file
 
-__all__ = ['select_df']  # only import 'select_df'
+    :param p: json path or containing folder
+    :return:
+        pd.DataFrame
+    """
+    if isinstance(p, str):  # if the variable p is an instance of the str class
+        p = Path(p)  # if yes, creates a new object of 'Path' class and assigns it to the variable 'p'
 
+    if 'json' in p.name:
+        return pd.read_json(p, encoding='utf-8')  # If the 'json in the p.name--> read this json file. If the string "json"
+        # is not in the "name" attribute, this block of code will not execute and the function will return nothing
+        # or continue with the next step of code.
 
-def select_df(df: pd.DataFrame,
-              rename_mapping: Dict[str, str] = None,
-              column_drop: Optional[List[str]] = None,
-              save_path: Optional[Path] = None) -> pd.DataFrame:
-    df = df.copy()
-
-    # Find all JSON files in the specified folder
-    json_folder = Path('/Users/wei/Google 雲端硬碟/Job Application 2023/CARA Network/AMR/')
-    json_files = json_folder.glob('*.json')
-
-    for json_file in json_files:
-        try:
-            # Load the JSON file as a Pandas DataFrame
-            json_data = pd.read_json(json_file)
-            # Perform any necessary operations on the DataFrame
-            if rename_mapping is not None:
-                json_data = json_data.rename(columns=rename_mapping)
-            if column_drop is not None:
-                json_data = json_data.drop(columns=column_drop)
-
-
-        except (FileNotFoundError, IOError) as e:
-            print(f"Error: Failed to load the JSON file {json_file}.")
-            print(e)
-            exit()
-        except ValueError as e:
-            print(f"Error: Failed to parse the JSON file {json_file}.")
-            print(e)
-            exit()
+    else:
+        f = list(p.glob('*.json'))  # To check if there is any json file present in the path p or not by using glob method
+        # and return a list of all the json files stored in 'p'
+        if len(f) == 0:
+            raise FileNotFoundError(f'no json file under the {p}')
+        elif len(f) == 1:
+            return pd.read_json(f[0], encoding='utf-8')
+        else:
+            raise RuntimeError(f'multiple json files under the {p}')
 
 
-     # Get the save path for the CSV file
-    if save_path is not None:
-        csv_file = json_file.with_suffix('.csv')
-        save_path = json_folder / csv_file.name
-        json_data.to_csv(save_path)
-    return df
 
 
-# Extract captions and URLs
-def extract_data(posts):
-    captions = []
-    urls = []
-    for i, post in enumerate(posts, start=1):
-        if 'caption' in post:
-            caption = f"{i}. {post['caption']}"
-            if caption not in captions:  # Check for duplicate captions
-                captions.append(caption)
-        if 'url' in post:
-            url = f"{i}. {post['url']}"
-            if url not in urls:  # Check for duplicate URLs
-                urls.append(url)
-    return captions, urls
+df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data')
 
-    df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions))
-
-    # Save the modified DataFrame to a CSV file
-    if save_path is not None:
-        df.to_csv(save_path)
-
-    # Print the captions and URLs for easy reference
-    for i, (captions, urls) in enumerate(zip(df['Caption'], df['URL']), start=1):
-        print(f"Post {i}:")
-        for caption in captions:
-            print(f"  Caption: {caption}")
-        for url in urls:
-            print(f"  URL: {url}")
-        print()
-
-    # Print a success message
-    print("Data successfully processed and saved to modified_test.csv.")
-
-
-if __name__ == '__main__':
-    df = pd.read_json('/Users/wei/Google 雲端硬碟/Job Application 2023/CARA Network/AMR')
-select_df(df)
+print(df)
