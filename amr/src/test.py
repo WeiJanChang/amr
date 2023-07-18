@@ -85,19 +85,76 @@ def cleandata(df: pd.DataFrame,
         df = df[df['name'].isin(keywords_drop) == False]
     if save_path is not None:
         df.to_excel(save_path)
-    print(df)
+
     return df
 
 
 if __name__ == '__main__':
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing')
+    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Superbugs')
     # Print the captions and URLs for easy reference
     df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions))
 
     column_drop = ['id', 'topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
-    #keywords_drop =['antibioticprescribing']
-    save_path = Path(
-        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Antibiotic prescribing 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
 
-    cleaned_df = cleandata(df, column_drop=column_drop, save_path=save_path)
+    # 1. Infection
+    keywords_drop = []
+    # 2. AMR
+    # keywords_drop = ["america", "amreading", "captainamerica", "amreli", "americanstaffordshireterrier",
+    #                 "americangirl", "americansalon", "americanbullypocket", "americanbulldog", "americanhistory",
+    #                 "madeinamerica", "copaamerica", "amrezy", "amritsar", "discoversouthamerica", "nativeamerican",
+    #                 "americanpitbull", "makeamericagreatagain", "american", "africanamerican", "proudamerican",
+    #                 "américa", "latinamerica", "amrdiab", "southamerica", "americaneagle", "americanairlines",
+    #                 "americanhorrorstory", "amerika", "americafirst", "americanboy", "americancars", "americanbullies",
+    #                 "americanflag", "americanpitbullterrier", "americalatina", "pastaamericana", "godblessamerica",
+    #                 "capitaoamerica", "amersfoort", "americanstaffordshire", "americasteam", "feriaamericana",
+    #                 "visitsouthamerica", "americanbullyofficial", "americanbullypuppy", "americanbully", "americancar",
+    #                 "americanbullyxl", "amrap", "captainamericacivilwar", "keepamericagreat", "amravati"]
+    # 3. Antimicrobial resistance
+    # keywords_drop = ["antimicrobialresistanceintanzania","antimicrobialresistanceindonesia",
+    #                 "antimicrobialresistancetanzania","antimicrobialresistancemalaysia",
+    #                 "antimicrobialresistancemalaysia💊","antimicrobialresistanceis","antimicrobialresistanceo"]
+    # 4. Antibiotics
+    # keywords_drop = ['antibioticsmile', 'antibioticskickingin', 'antibioticsftw']
+    # 5. Antimicrobials
+    # keywords_drop = ['antimicrobialsponge', 'antimicrobials2018', 'antimicrobialsensitivitytesting',
+    # 'antimicrobials💉']
+    # 6. Antimicrobial stewardship
+    # keywords_drop = ["antimicrobialstewardshipwaddup", "antimicrobialstewardshiptraining2019",
+    #                  "antimicrobialstewardshiprocks", "antimicrobialstewardchef",
+    #                  "antimicrobialstewardshipworkshop2018",
+    #                  "antimicrobialstewardahipprogram", "antimicrobialstewardshipinsicilia",
+    #                  "antimicrobialstewardship✔", "antimicrobialstewardardship",
+    #                  "antimicrobialstewardshipinpediatrics", "antimicrobialstewardshipdinner",
+    #                  "antimicrobialstewardshipbrasil", "antimicrobialstewardofgondor",
+    #                  "antimicrobialstewardshipprotocol", "antimicrobialstewardshipcertificate",
+    #                  "antimicrobialstewardship🧐", "antimicrobialstewardship🎯",
+    #                  "antimicrobialstewardaship", "antimicrobialstewardshipconference",
+    #                  "antimicrobialstewardshippharmacist", "antimicrobialstewardship🦠",
+    #                  "antimicrobialstewardshiprogram", "antimicrobialstewardshipcourse",
+    #                  "antimicrobialstewardshipprogrammes", "antimicrobialstewardshipsymposium",
+    #                  "antimicrobialstewardship💊", "antimicrobialstewardship2018"]
+    # 7. Drug resistant
+    # keywords_drop = ["drugresistantbugs", "drugresistantchlamydia", "drugresistantgerms", "drugresistantpathogens",
+    #                  "drugresistantuti", "drugresistantstd", "drugresistantbug", "drugresistanthiv",
+    #                  "drugresistantecoli", "drugresistantward", "drugresistantinsomnia",
+    #                  "drugresistantacinetobacter", "drugresistantcat", "drugresistantnasasusunod",
+    #                  "drugresistantcandidaauriscauris", "drugresistanttbcentre", "drugresistantb",
+    #                  "drugresistantepilepsysucksevenmore", "drugresistantepilespy", "drugresistant_tuberculosis",
+    #                  "drugresistantdepresssion", "drugresistantyak", "drugresistantbacterialinfections",
+    #                  "drugresistantaids", "drugresistantfeline", "drugresistantplants😊", "drugresistanttbguidance"]
+    # 8. Superbugs
+    # keywords_drop = ["superbugsindia", "superbugsy", "superbugster", "superbugsisreal", "superbugsbunny",
+    #                  "superbugsunday", "superbugsdepkxd", "superbugslayerspolo", "superbugsboardgame",
+    #                  "superbugs1600", "superbugsarereal", "superbugsen", "superbugs23", "superbugs_india",
+    #                  "superbugsafari", "superbugsbunnyfunkopop", "superbugshakycam",
+    #                  "superbugsize", "superbugs🖋️🔬", "superbugsareassholes", "superbugstotherescue", "superbugsmile",
+    #                  "superbugshatecleanhand", "superbugstrikesagain", "superbugsslayers", "superbugsinspace",
+    #                  "superbugss", "superbugsandyou", "superbugsと言う無料展示"]
+    # 9. Antibiotics resistance
+    # keywords_drop = ['antibioticsresistance2019', 'antibioticsresistancefight', 'antibioticsresistanceinpng',
+    #            'antibioticsresistancefighter', 'antibioticsresistancy', 'antibioticsresistanceweek2020']
+    save_path = Path(
+        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Superbugs/Superbugs 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
+
+    cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop, save_path=save_path)
     print("Data successfully processed and saved to modified_test.csv.")
