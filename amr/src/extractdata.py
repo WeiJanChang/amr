@@ -5,7 +5,7 @@ To do a content analysis to understand what type of messages (themes) have been 
 
 pipeline
 
-Step 1. Given below are the keywords we need to use to extract data from instagram
+Step 1. Given below are the hashtags we need to use to extract data from instagram
 
 1. AMR
 2. Antimicrobial resistance
@@ -14,11 +14,14 @@ Step 1. Given below are the keywords we need to use to extract data from instagr
 5. Antimicrobial stewardship
 6. Drug resistant
 7. Superbugs
-8. ABR
+8. Antibiotic resistance
 9. Infections
 10. Antibiotic prescribing
 
-Step 2. Merge Instagram and Twitter data
+Step 2. data cleaning: create a condition to select useful hashtags
+
+
+Step 3. Merge Instagram and Twitter data
 
 """
 # Code from: https://plainenglish.io/blog/scrape-everythings-from-instagram-using-python-39b5a8baf2e5
