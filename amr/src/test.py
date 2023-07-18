@@ -76,33 +76,28 @@ def extract_captions(posts):
 
 def cleandata(df: pd.DataFrame,
               column_drop: Optional[List[str]] = None,
+              keywords_drop: Optional[List[str]] = None,
               save_path: Optional[Path] = None) -> pd.DataFrame:
     df = df.copy()
     if column_drop is not None:
         df = df.drop(columns=column_drop)
-
+    if keywords_drop is not None:
+        df = df[df['name'].isin(keywords_drop) == False]
     if save_path is not None:
         df.to_excel(save_path)
-
+    print(df)
     return df
 
 
 if __name__ == '__main__':
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic resistance')
+    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing')
     # Print the captions and URLs for easy reference
     df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions))
-    """
-    for i, (captions, urls) in enumerate(zip(df['Caption'], df['URL']), start=1):
-        print(f"Post {i}:")
-        for caption in captions:
-            print(f"  Caption: {caption}")
-        for url in urls:
-            print(f"  URL: {url}")
-        print()
-    """
+
     column_drop = ['id', 'topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
+    #keywords_drop =['antibioticprescribing']
     save_path = Path(
-        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic resistance/Antibiotic resistance 01 Jan 2017 - 01 July 2023_modified.csv')
+        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Antibiotic prescribing 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
 
     cleaned_df = cleandata(df, column_drop=column_drop, save_path=save_path)
     print("Data successfully processed and saved to modified_test.csv.")

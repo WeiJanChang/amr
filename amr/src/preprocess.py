@@ -76,14 +76,16 @@ def extract_captions(posts):
 
 def cleandata(df: pd.DataFrame,
               column_drop: Optional[List[str]] = None,
+              keywords_drop: Optional[List[str]] = None,
               save_path: Optional[Path] = None) -> pd.DataFrame:
     df = df.copy()
     if column_drop is not None:
         df = df.drop(columns=column_drop)
-
+    if keywords_drop is not None:
+        df = df[df['name'].isin(keywords_drop) == False]
     if save_path is not None:
         df.to_excel(save_path)
-
+    print(df)
     return df
 
 
