@@ -90,25 +90,31 @@ def cleandata(df: pd.DataFrame,
 
 
 if __name__ == '__main__':
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Superbugs')
+    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections')
     # Print the captions and URLs for easy reference
     df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions))
 
     column_drop = ['id', 'topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
 
-    # 1. Infection
-    keywords_drop = []
+    # 1. Infections
+    # keywords_drop = ["infectionsurinaires","infectionsofadiffrentkind", "infectionsaypakpunjab",
+    #                  "infectionsofadifferentkindpartll","infectionsofadifferentkindstep1",
+    #                  "infectionsexuellementtransmissible","infectionsurinaires",
+    #                  "infectionsband","infectionssexuellementtransmissibles","infectionsrespiratoires",
+    #                  "infectionsvaginales","infectionsportswear","infectionsofadifferentkindstep",
+    #                  "infectionsrespiratoires","infectionstore","infections_urinaires","infectionsofdifferentkind"]
     # 2. AMR
     # keywords_drop = ["america", "amreading", "captainamerica", "amreli", "americanstaffordshireterrier",
     #                 "americangirl", "americansalon", "americanbullypocket", "americanbulldog", "americanhistory",
     #                 "madeinamerica", "copaamerica", "amrezy", "amritsar", "discoversouthamerica", "nativeamerican",
     #                 "americanpitbull", "makeamericagreatagain", "american", "africanamerican", "proudamerican",
     #                 "américa", "latinamerica", "amrdiab", "southamerica", "americaneagle", "americanairlines",
-    #                 "americanhorrorstory", "amerika", "americafirst", "americanboy", "americancars", "americanbullies",
-    #                 "americanflag", "americanpitbullterrier", "americalatina", "pastaamericana", "godblessamerica",
-    #                 "capitaoamerica", "amersfoort", "americanstaffordshire", "americasteam", "feriaamericana",
-    #                 "visitsouthamerica", "americanbullyofficial", "americanbullypuppy", "americanbully", "americancar",
-    #                 "americanbullyxl", "amrap", "captainamericacivilwar", "keepamericagreat", "amravati"]
+    #                 "americanhorrorstory", "amerika", "americafirst", "americanboy", "americancars",
+    #                 "americanbullies","americanflag", "americanpitbullterrier", "americalatina", "pastaamericana",
+    #                 "godblessamerica","capitaoamerica", "amersfoort", "americanstaffordshire", "americasteam",
+    #                 "feriaamericana","visitsouthamerica", "americanbullyofficial", "americanbullypuppy",
+    #                 "americanbully", "americancar","americanbullyxl", "amrap", "captainamericacivilwar",
+    #                 "keepamericagreat", "amravati"]
     # 3. Antimicrobial resistance
     # keywords_drop = ["antimicrobialresistanceintanzania","antimicrobialresistanceindonesia",
     #                 "antimicrobialresistancetanzania","antimicrobialresistancemalaysia",
@@ -153,8 +159,27 @@ if __name__ == '__main__':
     # 9. Antibiotics resistance
     # keywords_drop = ['antibioticsresistance2019', 'antibioticsresistancefight', 'antibioticsresistanceinpng',
     #            'antibioticsresistancefighter', 'antibioticsresistancy', 'antibioticsresistanceweek2020']
+    # 10. Antibiotic prescribing :nothing to drop
+    # 11.Bacterial infections
+    # keywords_drop = ["bacterialinfectionsstink","bacterialinfectionsuck","bacterialinfectionsinchildren",
+    #                  "bacterialinfectionsareawesome","bacterialinfectionsepsis","bacterialinfectionsaywhat",
+    #                  "bacterialinfectionsaregross","bacterialinfectionsinbotheyes","bacterialinfectionsja",
+    #                  "bacterialinfectionsgalore","bacterialinfections", "bacterialinfectionsofskin",
+    #                  "bacterialinfectionshavenothingonme","bacterialinfectionsinherstomach",
+    #                  "bacterialinfectionsalmostallgone","bacterialinfectionsabound",
+    #                  "bacterialinfectionscangetfuckedupthearsebybluewhalesdick","bacterialinfectionsucks",
+    #                  "bacterialinfectionscauses","bacterialinfectionsofthe5thdimension","bacterialinfectionsarecool",
+    #                  "bacterialinfectionsarenotfun","bacterialinfections😩","bacterialinfectionsoftheskin",
+    #                  "bacterialinfectionscantholddisdown","bacterialinfectionsux","bacterialinfectionspeedrun",
+    #                  "bacterialinfectionsareabitch","bacterialinfectionse","bacterialinfectionsquad",
+    #                  "bacterialinfectionsrising","bacterialinfectionsinhindi","bacterialinfectionsforthewin",
+    #                  "bacterialinfectionsarenot","bacterialinfectionsarenojoke",
+    #                  "bacterialinfectionsmacterialinfection","bacterialinfectionsintheblood😔💉💊",
+    #                  "bacterialinfectionsindogs","bacterialinfectionsfoundhere","bacterialinfectionsarethebest",
+    #                  "bacterialinfectionsandsethrogen"]
+
     save_path = Path(
-        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Superbugs/Superbugs 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
+        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
 
     cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop, save_path=save_path)
     print("Data successfully processed and saved to modified_test.csv.")
