@@ -63,13 +63,15 @@ def extract_captions(posts):
     captions = []
     urls = []
     for i, post in enumerate(posts, start=1):
+
         if 'caption' in post:
             caption = f"{i}. {post['caption']}"
             captions.append(caption)  # don't need to check for duplicate caption
         if 'url' in post:
             url = f"{i}. {post['url']}"
-            if url not in urls:  # Check for duplicate URLs
-                urls.append(url)
+            urls.append(url)
+            # if url not in urls:  # Check for duplicate URLs
+            #     urls.append(url)
 
     return captions, urls
 
@@ -90,7 +92,7 @@ def cleandata(df: pd.DataFrame,
 
 
 if __name__ == '__main__':
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections')
+    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR')
     # Print the captions and URLs for easy reference
     df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions))
 
@@ -104,21 +106,36 @@ if __name__ == '__main__':
     #                  "infectionsvaginales","infectionsportswear","infectionsofadifferentkindstep",
     #                  "infectionsrespiratoires","infectionstore","infections_urinaires","infectionsofdifferentkind"]
     # 2. AMR
-    # keywords_drop = ["america", "amreading", "captainamerica", "amreli", "americanstaffordshireterrier",
-    #                 "americangirl", "americansalon", "americanbullypocket", "americanbulldog", "americanhistory",
-    #                 "madeinamerica", "copaamerica", "amrezy", "amritsar", "discoversouthamerica", "nativeamerican",
-    #                 "americanpitbull", "makeamericagreatagain", "american", "africanamerican", "proudamerican",
-    #                 "américa", "latinamerica", "amrdiab", "southamerica", "americaneagle", "americanairlines",
-    #                 "americanhorrorstory", "amerika", "americafirst", "americanboy", "americancars",
-    #                 "americanbullies","americanflag", "americanpitbullterrier", "americalatina", "pastaamericana",
-    #                 "godblessamerica","capitaoamerica", "amersfoort", "americanstaffordshire", "americasteam",
-    #                 "feriaamericana","visitsouthamerica", "americanbullyofficial", "americanbullypuppy",
-    #                 "americanbully", "americancar","americanbullyxl", "amrap", "captainamericacivilwar",
-    #                 "keepamericagreat", "amravati"]
+    keywords_drop = ["america", "amreading", "captainamerica", "amreli", "americanstaffordshireterrier",
+                     "americangirl", "americansalon", "americanbullypocket", "americanbulldog", "americanhistory",
+                     "madeinamerica", "copaamerica", "amrezy", "amritsar", "discoversouthamerica", "nativeamerican",
+                     "americanpitbull", "makeamericagreatagain", "american", "africanamerican", "proudamerican",
+                     "américa", "latinamerica", "amrdiab", "southamerica", "americaneagle", "americanairlines",
+                     "americanhorrorstory", "amerika", "americafirst", "americanboy", "americancars",
+                     "americanbullies", "americanflag", "americanpitbullterrier", "americalatina", "pastaamericana",
+                     "godblessamerica", "capitaoamerica", "amersfoort", "americanstaffordshire", "americasteam",
+                     "feriaamericana", "visitsouthamerica", "americanbullyofficial", "americanbullypuppy",
+                     "americanbully", "americancar", "americanbullyxl", "amrap", "captainamericacivilwar",
+                     "keepamericagreat", "amravati"]
     # 3. Antimicrobial resistance
-    # keywords_drop = ["antimicrobialresistanceintanzania","antimicrobialresistanceindonesia",
-    #                 "antimicrobialresistancetanzania","antimicrobialresistancemalaysia",
-    #                 "antimicrobialresistancemalaysia💊","antimicrobialresistanceis","antimicrobialresistanceo"]
+    # keywords_drop = ["antimicrobialresistanceintanzania",
+    #                  "antimicrobialresistanceindonesia",
+    #                  "antimicrobialresistancetanzania",
+    #                  "antimicrobialresistancemalaysia",
+    #                  "antimicrobialresistancemalaysia💊",
+    #                  "antimicrobialresistanceis",
+    #                  "antimicrobialresistanceinfo➡",
+    #                  "antimicrobialresistance✔️",
+    #                  "antimicrobialresistancewhat",
+    #                  "antimicrobialresistance💊💉",
+    #                  "antimicrobialresistance🙏",
+    #                  "antimicrobialresistancecontaintment",
+    #                  "antimicrobialresistance😉",
+    #                  "antimicrobialresistanceisabooboo",
+    #                  "antimicrobialresistancecartoonposter",
+    #                  "antimicrobialresistanceawarness",
+    #                  "antimicrobialresistanceisnotathing",
+    #                  "antimicrobialresistanceisscary"]
     # 4. Antibiotics
     # keywords_drop = ['antibioticsmile', 'antibioticskickingin', 'antibioticsftw']
     # 5. Antimicrobials
@@ -156,9 +173,29 @@ if __name__ == '__main__':
     #                  "superbugsize", "superbugs🖋️🔬", "superbugsareassholes", "superbugstotherescue", "superbugsmile",
     #                  "superbugshatecleanhand", "superbugstrikesagain", "superbugsslayers", "superbugsinspace",
     #                  "superbugss", "superbugsandyou", "superbugsと言う無料展示"]
-    # 9. Antibiotics resistance
-    # keywords_drop = ['antibioticsresistance2019', 'antibioticsresistancefight', 'antibioticsresistanceinpng',
-    #            'antibioticsresistancefighter', 'antibioticsresistancy', 'antibioticsresistanceweek2020']
+    # 9. Antibiotic resistance
+    # keywords_drop = ["antibioticresistanceexplained",
+    #                  "antibioticresistancemonth",
+    #                  "antibioticresistance💊💉",
+    #                  "antibioticresistance⚠️",
+    #                  "antibioticresistanceisbad",
+    #                  "antibioticresistanceis4real",
+    #                  "antibioticresistance👈",
+    #                  "antibioticresistanceresearch",
+    #                  "antibioticresistanceawarness",
+    #                  "antibioticresistancetest",
+    #                  "antibioticresistancetesting",
+    #                  "antibioticresistanceinindia",
+    #                  "antibioticresistanceinchildren",
+    #                  "antibioticresistancegenesantibióticos",
+    #                  "antibioticresistanceawareness2021",
+    #                  "antibioticresistanceisanightmare",
+    #                  "antibioticresistancefight",
+    #                  "antibioticresistance💊👊",
+    #                  "antibioticresistanceontherise",
+    #                  "antibioticresistanceofmicrobes"
+    #
+    #                  ]
     # 10. Antibiotic prescribing :nothing to drop
     # 11.Bacterial infections
     # keywords_drop = ["bacterialinfectionsstink","bacterialinfectionsuck","bacterialinfectionsinchildren",
@@ -179,7 +216,37 @@ if __name__ == '__main__':
     #                  "bacterialinfectionsandsethrogen"]
 
     save_path = Path(
-        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
+        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR/AMR 01 Jan 2017 - 01 July 2023_specific hashtags_test.csv')
 
     cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop, save_path=save_path)
     print("Data successfully processed and saved to modified_test.csv.")
+
+
+def organised_data(df: pd.DataFrame,
+                   save_path: Optional[Path] = None) -> pd.DataFrame:
+    df['Caption'] = df['Caption'].apply(lambda x: [str(item) for item in x])
+    # to convert each element in the 'Caption' column into a list of strings.
+    df['URL'] = df['URL'].apply(lambda x: [str(item) for item in x])
+    # It's applied to each element x in the 'URL' column. It converts each element into a string using str(item) and
+    # places it in a list.
+
+    # Create a new df. each Caption and URL is unique in each cell. But the name ane url keep the same
+    new_df = pd.DataFrame({
+        'name': df['name'].repeat(df['Caption'].apply(len)),
+        'url': df['url'].repeat(df['URL'].apply(len)),
+        'Caption': [caption for captions in df['Caption'] for caption in captions],
+        # Extracting each element from every column and writing them into individual cells.
+        'URL': [url for urls in df['URL'] for url in urls]
+    })
+
+    # reset index
+    new_df.reset_index(drop=True, inplace=True)
+
+    if save_path:
+        new_df.to_csv(save_path)
+
+    return new_df
+
+save_path = (
+    '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR/AMR 01 Jan 2017 - 01 July 2023_test.csv')
+organised_data(df, save_path=save_path)
