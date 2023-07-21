@@ -117,13 +117,94 @@ def organised_data(df: pd.DataFrame,
 
 
 if __name__ == '__main__':
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/')
+    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections')
     # Print the captions and URLs for easy reference
     df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions))
 
     column_drop = ['id', 'topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
-    save_path = Path(
-        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic resistance/Antibiotic resistance 01 Jan 2017 - 01 July 2023_modified.csv')
 
-    cleaned_df = cleandata(df, column_drop=column_drop, save_path=save_path)
+    keyword_sets = [
+        ["infectionsurinaires", "infectionsofadiffrentkind", "infectionsaypakpunjab", "infectionsofadifferentkindpartll",
+         "infectionsofadifferentkindstep1", "infectionsexuellementtransmissible", "infectionsurinaires",
+         "infectionsband", "infectionssexuellementtransmissibles", "infectionsrespiratoires",
+         "infectionsvaginales", "infectionsportswear", "infectionsofadifferentkindstep",
+         "infectionsrespiratoires", "infectionstore", "infections_urinaires", "infectionsofdifferentkind"],
+        ["america", "amreading", "captainamerica", "amreli", "americanstaffordshireterrier",
+         "americangirl", "americansalon", "americanbullypocket", "americanbulldog", "americanhistory",
+         "madeinamerica", "copaamerica", "amrezy", "amritsar", "discoversouthamerica", "nativeamerican",
+         "americanpitbull", "makeamericagreatagain", "american", "africanamerican", "proudamerican",
+         "américa", "latinamerica", "amrdiab", "southamerica", "americaneagle", "americanairlines",
+         "americanhorrorstory", "amerika", "americafirst", "americanboy", "americancars",
+         "americanbullies", "americanflag", "americanpitbullterrier", "americalatina", "pastaamericana",
+         "godblessamerica", "capitaoamerica", "amersfoort", "americanstaffordshire", "americasteam",
+         "feriaamericana", "visitsouthamerica", "americanbullyofficial", "americanbullypuppy",
+         "americanbully", "americancar", "americanbullyxl", "amrap", "captainamericacivilwar",
+         "keepamericagreat", "amravati"],
+        ["antimicrobialresistanceintanzania", "antimicrobialresistanceindonesia", "antimicrobialresistancetanzania",
+         "antimicrobialresistancemalaysia", "antimicrobialresistancemalaysia💊", "antimicrobialresistanceis",
+         "antimicrobialresistanceinfo➡", "antimicrobialresistance✔️", "antimicrobialresistancewhat",
+         "antimicrobialresistance💊💉", "antimicrobialresistance🙏", "antimicrobialresistancecontaintment",
+         "antimicrobialresistance😉", "antimicrobialresistanceisabooboo", "antimicrobialresistancecartoonposter",
+         "antimicrobialresistanceawarness", "antimicrobialresistanceisnotathing", "antimicrobialresistanceisscary"],
+        ['antibioticsmile', 'antibioticskickingin', 'antibioticsftw'],
+        ['antimicrobialsponge', 'antimicrobials2018', 'antimicrobialsensitivitytesting', 'antimicrobials💉'],
+        ["antimicrobialstewardshipwaddup", "antimicrobialstewardshiptraining2019",
+         "antimicrobialstewardshiprocks", "antimicrobialstewardchef", "antimicrobialstewardshipworkshop2018",
+         "antimicrobialstewardahipprogram", "antimicrobialstewardshipinsicilia",
+         "antimicrobialstewardship✔", "antimicrobialstewardardship",
+         "antimicrobialstewardshipinpediatrics", "antimicrobialstewardshipdinner",
+         "antimicrobialstewardshipbrasil", "antimicrobialstewardofgondor",
+         "antimicrobialstewardshipprotocol", "antimicrobialstewardshipcertificate",
+         "antimicrobialstewardship🧐", "antimicrobialstewardship🎯",
+         "antimicrobialstewardaship", "antimicrobialstewardshipconference",
+         "antimicrobialstewardshippharmacist", "antimicrobialstewardship🦠",
+         "antimicrobialstewardshiprogram", "antimicrobialstewardshipcourse",
+         "antimicrobialstewardshipprogrammes", "antimicrobialstewardshipsymposium",
+         "antimicrobialstewardship💊", "antimicrobialstewardship2018"],
+        ["drugresistantbugs", "drugresistantchlamydia", "drugresistantgerms", "drugresistantpathogens",
+         "drugresistantuti", "drugresistantstd", "drugresistantbug", "drugresistanthiv",
+         "drugresistantecoli", "drugresistantward", "drugresistantinsomnia",
+         "drugresistantacinetobacter", "drugresistantcat", "drugresistantnasasusunod",
+         "drugresistantcandidaauriscauris", "drugresistanttbcentre", "drugresistantb",
+         "drugresistantepilepsysucksevenmore", "drugresistantepilespy", "drugresistant_tuberculosis",
+         "drugresistantdepresssion", "drugresistantyak", "drugresistantbacterialinfections",
+         "drugresistantaids", "drugresistantfeline", "drugresistantplants😊", "drugresistanttbguidance"],
+        ["superbugsindia", "superbugsy", "superbugster", "superbugsisreal", "superbugsbunny",
+         "superbugsunday", "superbugsdepkxd", "superbugslayerspolo", "superbugsboardgame",
+         "superbugs1600", "superbugsarereal", "superbugsen", "superbugs23", "superbugs_india",
+         "superbugsafari", "superbugsbunnyfunkopop", "superbugshakycam",
+         "superbugsize", "superbugs🖋️🔬", "superbugsareassholes", "superbugstotherescue", "superbugsmile",
+         "superbugshatecleanhand", "superbugstrikesagain", "superbugsslayers", "superbugsinspace",
+         "superbugss", "superbugsandyou", "superbugsと言う無料展示"],
+        ["antibioticresistanceexplained", "antibioticresistancemonth", "antibioticresistance💊💉",
+         "antibioticresistance⚠️", "antibioticresistanceisbad", "antibioticresistanceis4real",
+         "antibioticresistance👈", "antibioticresistanceresearch", "antibioticresistanceawarness",
+         "antibioticresistancetest", "antibioticresistancetesting", "antibioticresistanceinindia",
+         "antibioticresistanceinchildren", "antibioticresistancegenesantibióticos",
+         "antibioticresistanceawareness2021", "antibioticresistanceisanightmare",
+         "antibioticresistancefight", "antibioticresistance💊👊", "antibioticresistanceontherise",
+         "antibioticresistanceofmicrobes"],
+        ["bacterialinfectionsstink", "bacterialinfectionsuck", "bacterialinfectionsinchildren",
+         "bacterialinfectionsareawesome", "bacterialinfectionsepsis", "bacterialinfectionsaywhat",
+         "bacterialinfectionsaregross", "bacterialinfectionsinbotheyes", "bacterialinfectionsja",
+         "bacterialinfectionsgalore", "bacterialinfections", "bacterialinfectionsofskin",
+         "bacterialinfectionshavenothingonme", "bacterialinfectionsinherstomach",
+         "bacterialinfectionsalmostallgone", "bacterialinfectionsabound",
+         "bacterialinfectionscangetfuckedupthearsebybluewhalesdick", "bacterialinfectionsucks",
+         "bacterialinfectionscauses", "bacterialinfectionsofthe5thdimension", "bacterialinfectionsarecool",
+         "bacterialinfectionsarenotfun", "bacterialinfections😩", "bacterialinfectionsoftheskin",
+         "bacterialinfectionscantholddisdown", "bacterialinfectionsux", "bacterialinfectionspeedrun",
+         "bacterialinfectionsareabitch", "bacterialinfectionse", "bacterialinfectionsquad",
+         "bacterialinfectionsrising", "bacterialinfectionsinhindi", "bacterialinfectionsforthewin",
+         "bacterialinfectionsarenot", "bacterialinfectionsarenojoke",
+         "bacterialinfectionsmacterialinfection", "bacterialinfectionsintheblood😔💉💊",
+         "bacterialinfectionsindogs", "bacterialinfectionsfoundhere", "bacterialinfectionsarethebest",
+         "bacterialinfectionsandsethrogen"]]
+
+    for keywords_drop in keyword_sets:
+        cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop)
+        save_path = Path(
+            '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
+        organised_data(cleaned_df, save_path=save_path)
+
     print("Data successfully processed and saved to modified_test.csv.")

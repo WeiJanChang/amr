@@ -91,36 +91,6 @@ def cleandata(df: pd.DataFrame,
     return df
 
 
-# def organised_data(df: pd.DataFrame,
-#                    save_path: Optional[Path] = None) -> pd.DataFrame:
-#     df['Caption'] = df['Caption'].apply(lambda x: [str(item) for item in x])
-#     # to convert each element in the 'Caption' column into a list of strings.
-#     df['URL'] = df['URL'].apply(lambda x: [str(item) for item in x])
-#     # It's applied to each element x in the 'URL' column. It converts each element into a string using str(item) and
-#     # places it in a list.
-#
-#     # Create a new df. each Caption and URL is unique in each cell. But the name ane url keep the same
-#     new_df = pd.DataFrame({
-#         'name': df['name'].repeat(df['Caption'].apply(len)),
-#         'url': df['url'].repeat(df['URL'].apply(len)),
-#         'Caption': [caption for captions in df['Caption'] for caption in captions],
-#         # Extracting each element from every column and writing them into individual cells.
-#         'URL': [url for urls in df['URL'] for url in urls]
-#     })
-#
-#     # reset index
-#     new_df.reset_index(drop=True, inplace=True)
-#
-#     if save_path:
-#         new_df.to_csv(save_path)
-#
-#     return new_df
-
-import pandas as pd
-from typing import Optional
-from pathlib import Path
-
-
 def organised_data(df: pd.DataFrame,
                    save_path: Optional[Path] = None) -> pd.DataFrame:
     df['Caption'] = df['Caption'].apply(lambda x: [str(item) for item in x])
@@ -148,117 +118,95 @@ def organised_data(df: pd.DataFrame,
 
 
 if __name__ == '__main__':
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing')
+    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections')
     # Print the captions and URLs for easy reference
     df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions))
 
     column_drop = ['id', 'topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
 
-    # 1. Infections
-    # keywords_drop = ["infectionsurinaires","infectionsofadiffrentkind", "infectionsaypakpunjab",
-    #                  "infectionsofadifferentkindpartll","infectionsofadifferentkindstep1",
-    #                  "infectionsexuellementtransmissible","infectionsurinaires",
-    #                  "infectionsband","infectionssexuellementtransmissibles","infectionsrespiratoires",
-    #                  "infectionsvaginales","infectionsportswear","infectionsofadifferentkindstep",
-    #                  "infectionsrespiratoires","infectionstore","infections_urinaires","infectionsofdifferentkind"]
-    # 2. AMR
-    # keywords_drop = ["america", "amreading", "captainamerica", "amreli", "americanstaffordshireterrier",
-    #                  "americangirl", "americansalon", "americanbullypocket", "americanbulldog", "americanhistory",
-    #                  "madeinamerica", "copaamerica", "amrezy", "amritsar", "discoversouthamerica", "nativeamerican",
-    #                  "americanpitbull", "makeamericagreatagain", "american", "africanamerican", "proudamerican",
-    #                  "américa", "latinamerica", "amrdiab", "southamerica", "americaneagle", "americanairlines",
-    #                  "americanhorrorstory", "amerika", "americafirst", "americanboy", "americancars",
-    #                  "americanbullies", "americanflag", "americanpitbullterrier", "americalatina", "pastaamericana",
-    #                  "godblessamerica", "capitaoamerica", "amersfoort", "americanstaffordshire", "americasteam",
-    #                  "feriaamericana", "visitsouthamerica", "americanbullyofficial", "americanbullypuppy",
-    #                  "americanbully", "americancar", "americanbullyxl", "amrap", "captainamericacivilwar",
-    #                  "keepamericagreat", "amravati"]
-    # 3. Antimicrobial resistance
-    # keywords_drop = ["antimicrobialresistanceintanzania",
-    #                  "antimicrobialresistanceindonesia",
-    #                  "antimicrobialresistancetanzania",
-    #                  "antimicrobialresistancemalaysia",
-    #                  "antimicrobialresistancemalaysia💊",
-    #                  "antimicrobialresistanceis",
-    #                  "antimicrobialresistanceinfo➡",
-    #                  "antimicrobialresistance✔️",
-    #                  "antimicrobialresistancewhat",
-    #                  "antimicrobialresistance💊💉",
-    #                  "antimicrobialresistance🙏",
-    #                  "antimicrobialresistancecontaintment",
-    #                  "antimicrobialresistance😉",
-    #                  "antimicrobialresistanceisabooboo",
-    #                  "antimicrobialresistancecartoonposter",
-    #                  "antimicrobialresistanceawarness",
-    #                  "antimicrobialresistanceisnotathing",
-    #                  "antimicrobialresistanceisscary"]
-    # 4. Antibiotics
-    # keywords_drop = ['antibioticsmile', 'antibioticskickingin', 'antibioticsftw']
-    # # 5. Antimicrobials
-    # keywords_drop = ['antimicrobialsponge', 'antimicrobials2018', 'antimicrobialsensitivitytesting',
-    #                  'antimicrobials💉']
-    # 6. Antimicrobial stewardship
-    # keywords_drop = ["antimicrobialstewardshipwaddup", "antimicrobialstewardshiptraining2019",
-    #                  "antimicrobialstewardshiprocks", "antimicrobialstewardchef",
-    #                  "antimicrobialstewardshipworkshop2018",
-    #                  "antimicrobialstewardahipprogram", "antimicrobialstewardshipinsicilia",
-    #                  "antimicrobialstewardship✔", "antimicrobialstewardardship",
-    #                  "antimicrobialstewardshipinpediatrics", "antimicrobialstewardshipdinner",
-    #                  "antimicrobialstewardshipbrasil", "antimicrobialstewardofgondor",
-    #                  "antimicrobialstewardshipprotocol", "antimicrobialstewardshipcertificate",
-    #                  "antimicrobialstewardship🧐", "antimicrobialstewardship🎯",
-    #                  "antimicrobialstewardaship", "antimicrobialstewardshipconference",
-    #                  "antimicrobialstewardshippharmacist", "antimicrobialstewardship🦠",
-    #                  "antimicrobialstewardshiprogram", "antimicrobialstewardshipcourse",
-    #                  "antimicrobialstewardshipprogrammes", "antimicrobialstewardshipsymposium",
-    #                  "antimicrobialstewardship💊", "antimicrobialstewardship2018"]
-    # 7. Drug resistant
-    # keywords_drop = ["drugresistantbugs", "drugresistantchlamydia", "drugresistantgerms", "drugresistantpathogens",
-    #                  "drugresistantuti", "drugresistantstd", "drugresistantbug", "drugresistanthiv",
-    #                  "drugresistantecoli", "drugresistantward", "drugresistantinsomnia",
-    #                  "drugresistantacinetobacter", "drugresistantcat", "drugresistantnasasusunod",
-    #                  "drugresistantcandidaauriscauris", "drugresistanttbcentre", "drugresistantb",
-    #                  "drugresistantepilepsysucksevenmore", "drugresistantepilespy", "drugresistant_tuberculosis",
-    #                  "drugresistantdepresssion", "drugresistantyak", "drugresistantbacterialinfections",
-    #                  "drugresistantaids", "drugresistantfeline", "drugresistantplants😊", "drugresistanttbguidance"]
-    # 8. Superbugs
-    # keywords_drop = ["superbugsindia", "superbugsy", "superbugster", "superbugsisreal", "superbugsbunny",
-    #                  "superbugsunday", "superbugsdepkxd", "superbugslayerspolo", "superbugsboardgame",
-    #                  "superbugs1600", "superbugsarereal", "superbugsen", "superbugs23", "superbugs_india",
-    #                  "superbugsafari", "superbugsbunnyfunkopop", "superbugshakycam",
-    #                  "superbugsize", "superbugs🖋️🔬", "superbugsareassholes", "superbugstotherescue", "superbugsmile",
-    #                  "superbugshatecleanhand", "superbugstrikesagain", "superbugsslayers", "superbugsinspace",
-    #                  "superbugss", "superbugsandyou", "superbugsと言う無料展示"]
-    # 9. Antibiotic resistance
-    # keywords_drop = ["antibioticresistanceexplained","antibioticresistancemonth","antibioticresistance💊💉",
-    #                  "antibioticresistance⚠️","antibioticresistanceisbad","antibioticresistanceis4real",
-    #                  "antibioticresistance👈","antibioticresistanceresearch","antibioticresistanceawarness",
-    #                  "antibioticresistancetest","antibioticresistancetesting","antibioticresistanceinindia",
-    #                  "antibioticresistanceinchildren","antibioticresistancegenesantibióticos",
-    #                  "antibioticresistanceawareness2021","antibioticresistanceisanightmare",
-    #                  "antibioticresistancefight","antibioticresistance💊👊","antibioticresistanceontherise",
-    #                  "antibioticresistanceofmicrobes"]
-    # 10. Antibiotic prescribing :nothing to drop
-    # 11.Bacterial infections
-    # keywords_drop = ["bacterialinfectionsstink","bacterialinfectionsuck","bacterialinfectionsinchildren",
-    #                  "bacterialinfectionsareawesome","bacterialinfectionsepsis","bacterialinfectionsaywhat",
-    #                  "bacterialinfectionsaregross","bacterialinfectionsinbotheyes","bacterialinfectionsja",
-    #                  "bacterialinfectionsgalore","bacterialinfections", "bacterialinfectionsofskin",
-    #                  "bacterialinfectionshavenothingonme","bacterialinfectionsinherstomach",
-    #                  "bacterialinfectionsalmostallgone","bacterialinfectionsabound",
-    #                  "bacterialinfectionscangetfuckedupthearsebybluewhalesdick","bacterialinfectionsucks",
-    #                  "bacterialinfectionscauses","bacterialinfectionsofthe5thdimension","bacterialinfectionsarecool",
-    #                  "bacterialinfectionsarenotfun","bacterialinfections😩","bacterialinfectionsoftheskin",
-    #                  "bacterialinfectionscantholddisdown","bacterialinfectionsux","bacterialinfectionspeedrun",
-    #                  "bacterialinfectionsareabitch","bacterialinfectionse","bacterialinfectionsquad",
-    #                  "bacterialinfectionsrising","bacterialinfectionsinhindi","bacterialinfectionsforthewin",
-    #                  "bacterialinfectionsarenot","bacterialinfectionsarenojoke",
-    #                  "bacterialinfectionsmacterialinfection","bacterialinfectionsintheblood😔💉💊",
-    #                  "bacterialinfectionsindogs","bacterialinfectionsfoundhere","bacterialinfectionsarethebest",
-    #                  "bacterialinfectionsandsethrogen"]
+    keyword_sets = [
+        ["infectionsurinaires", "infectionsofadiffrentkind", "infectionsaypakpunjab",
+         "infectionsofadifferentkindpartll",
+         "infectionsofadifferentkindstep1", "infectionsexuellementtransmissible", "infectionsurinaires",
+         "infectionsband", "infectionssexuellementtransmissibles", "infectionsrespiratoires",
+         "infectionsvaginales", "infectionsportswear", "infectionsofadifferentkindstep",
+         "infectionsrespiratoires", "infectionstore", "infections_urinaires", "infectionsofdifferentkind"],
+        ["america", "amreading", "captainamerica", "amreli", "americanstaffordshireterrier",
+         "americangirl", "americansalon", "americanbullypocket", "americanbulldog", "americanhistory",
+         "madeinamerica", "copaamerica", "amrezy", "amritsar", "discoversouthamerica", "nativeamerican",
+         "americanpitbull", "makeamericagreatagain", "american", "africanamerican", "proudamerican",
+         "américa", "latinamerica", "amrdiab", "southamerica", "americaneagle", "americanairlines",
+         "americanhorrorstory", "amerika", "americafirst", "americanboy", "americancars",
+         "americanbullies", "americanflag", "americanpitbullterrier", "americalatina", "pastaamericana",
+         "godblessamerica", "capitaoamerica", "amersfoort", "americanstaffordshire", "americasteam",
+         "feriaamericana", "visitsouthamerica", "americanbullyofficial", "americanbullypuppy",
+         "americanbully", "americancar", "americanbullyxl", "amrap", "captainamericacivilwar",
+         "keepamericagreat", "amravati"],
+        ["antimicrobialresistanceintanzania", "antimicrobialresistanceindonesia", "antimicrobialresistancetanzania",
+         "antimicrobialresistancemalaysia", "antimicrobialresistancemalaysia💊", "antimicrobialresistanceis",
+         "antimicrobialresistanceinfo➡", "antimicrobialresistance✔️", "antimicrobialresistancewhat",
+         "antimicrobialresistance💊💉", "antimicrobialresistance🙏", "antimicrobialresistancecontaintment",
+         "antimicrobialresistance😉", "antimicrobialresistanceisabooboo", "antimicrobialresistancecartoonposter",
+         "antimicrobialresistanceawarness", "antimicrobialresistanceisnotathing", "antimicrobialresistanceisscary"],
+        ['antibioticsmile', 'antibioticskickingin', 'antibioticsftw'],
+        ['antimicrobialsponge', 'antimicrobials2018', 'antimicrobialsensitivitytesting', 'antimicrobials💉'],
+        ["antimicrobialstewardshipwaddup", "antimicrobialstewardshiptraining2019",
+         "antimicrobialstewardshiprocks", "antimicrobialstewardchef", "antimicrobialstewardshipworkshop2018",
+         "antimicrobialstewardahipprogram", "antimicrobialstewardshipinsicilia",
+         "antimicrobialstewardship✔", "antimicrobialstewardardship",
+         "antimicrobialstewardshipinpediatrics", "antimicrobialstewardshipdinner",
+         "antimicrobialstewardshipbrasil", "antimicrobialstewardofgondor",
+         "antimicrobialstewardshipprotocol", "antimicrobialstewardshipcertificate",
+         "antimicrobialstewardship🧐", "antimicrobialstewardship🎯",
+         "antimicrobialstewardaship", "antimicrobialstewardshipconference",
+         "antimicrobialstewardshippharmacist", "antimicrobialstewardship🦠",
+         "antimicrobialstewardshiprogram", "antimicrobialstewardshipcourse",
+         "antimicrobialstewardshipprogrammes", "antimicrobialstewardshipsymposium",
+         "antimicrobialstewardship💊", "antimicrobialstewardship2018"],
+        ["drugresistantbugs", "drugresistantchlamydia", "drugresistantgerms", "drugresistantpathogens",
+         "drugresistantuti", "drugresistantstd", "drugresistantbug", "drugresistanthiv",
+         "drugresistantecoli", "drugresistantward", "drugresistantinsomnia",
+         "drugresistantacinetobacter", "drugresistantcat", "drugresistantnasasusunod",
+         "drugresistantcandidaauriscauris", "drugresistanttbcentre", "drugresistantb",
+         "drugresistantepilepsysucksevenmore", "drugresistantepilespy", "drugresistant_tuberculosis",
+         "drugresistantdepresssion", "drugresistantyak", "drugresistantbacterialinfections",
+         "drugresistantaids", "drugresistantfeline", "drugresistantplants😊", "drugresistanttbguidance"],
+        ["superbugsindia", "superbugsy", "superbugster", "superbugsisreal", "superbugsbunny",
+         "superbugsunday", "superbugsdepkxd", "superbugslayerspolo", "superbugsboardgame",
+         "superbugs1600", "superbugsarereal", "superbugsen", "superbugs23", "superbugs_india",
+         "superbugsafari", "superbugsbunnyfunkopop", "superbugshakycam",
+         "superbugsize", "superbugs🖋️🔬", "superbugsareassholes", "superbugstotherescue", "superbugsmile",
+         "superbugshatecleanhand", "superbugstrikesagain", "superbugsslayers", "superbugsinspace",
+         "superbugss", "superbugsandyou", "superbugsと言う無料展示"],
+        ["antibioticresistanceexplained", "antibioticresistancemonth", "antibioticresistance💊💉",
+         "antibioticresistance⚠️", "antibioticresistanceisbad", "antibioticresistanceis4real",
+         "antibioticresistance👈", "antibioticresistanceresearch", "antibioticresistanceawarness",
+         "antibioticresistancetest", "antibioticresistancetesting", "antibioticresistanceinindia",
+         "antibioticresistanceinchildren", "antibioticresistancegenesantibióticos",
+         "antibioticresistanceawareness2021", "antibioticresistanceisanightmare",
+         "antibioticresistancefight", "antibioticresistance💊👊", "antibioticresistanceontherise",
+         "antibioticresistanceofmicrobes"],
+        ["bacterialinfectionsstink", "bacterialinfectionsuck", "bacterialinfectionsinchildren",
+         "bacterialinfectionsareawesome", "bacterialinfectionsepsis", "bacterialinfectionsaywhat",
+         "bacterialinfectionsaregross", "bacterialinfectionsinbotheyes", "bacterialinfectionsja",
+         "bacterialinfectionsgalore", "bacterialinfections", "bacterialinfectionsofskin",
+         "bacterialinfectionshavenothingonme", "bacterialinfectionsinherstomach",
+         "bacterialinfectionsalmostallgone", "bacterialinfectionsabound",
+         "bacterialinfectionscangetfuckedupthearsebybluewhalesdick", "bacterialinfectionsucks",
+         "bacterialinfectionscauses", "bacterialinfectionsofthe5thdimension", "bacterialinfectionsarecool",
+         "bacterialinfectionsarenotfun", "bacterialinfections😩", "bacterialinfectionsoftheskin",
+         "bacterialinfectionscantholddisdown", "bacterialinfectionsux", "bacterialinfectionspeedrun",
+         "bacterialinfectionsareabitch", "bacterialinfectionse", "bacterialinfectionsquad",
+         "bacterialinfectionsrising", "bacterialinfectionsinhindi", "bacterialinfectionsforthewin",
+         "bacterialinfectionsarenot", "bacterialinfectionsarenojoke",
+         "bacterialinfectionsmacterialinfection", "bacterialinfectionsintheblood😔💉💊",
+         "bacterialinfectionsindogs", "bacterialinfectionsfoundhere", "bacterialinfectionsarethebest",
+         "bacterialinfectionsandsethrogen"]]
 
-    cleaned_df = cleandata(df, column_drop=column_drop)
-    save_path = Path(
-        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Antibiotic prescribing 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
-    organised_data(cleaned_df, save_path=save_path)
+    for keywords_drop in keyword_sets:
+        cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop)
+        save_path = Path(
+            '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
+        organised_data(cleaned_df, save_path=save_path)
+
     print("Data successfully processed and saved to modified_test.csv.")
