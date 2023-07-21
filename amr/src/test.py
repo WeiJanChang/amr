@@ -91,6 +91,32 @@ def cleandata(df: pd.DataFrame,
     return df
 
 
+def organised_data(df: pd.DataFrame,
+                   save_path: Optional[Path] = None) -> pd.DataFrame:
+    df['Caption'] = df['Caption'].apply(lambda x: [str(item) for item in x])
+    # to convert each element in the 'Caption' column into a list of strings.
+    df['URL'] = df['URL'].apply(lambda x: [str(item) for item in x])
+    # It's applied to each element x in the 'URL' column. It converts each element into a string using str(item) and
+    # places it in a list.
+
+    # Create a new df. each Caption and URL is unique in each cell. But the name ane url keep the same
+    new_df = pd.DataFrame({
+        'name': df['name'].repeat(df['Caption'].apply(len)),
+        'url': df['url'].repeat(df['URL'].apply(len)),
+        'Caption': [caption for captions in df['Caption'] for caption in captions],
+        # Extracting each element from every column and writing them into individual cells.
+        'URL': [url for urls in df['URL'] for url in urls]
+    })
+
+    # reset index
+    new_df.reset_index(drop=True, inplace=True)
+
+    if save_path:
+        new_df.to_csv(save_path)
+
+    return new_df
+
+
 if __name__ == '__main__':
     df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR')
     # Print the captions and URLs for easy reference
@@ -215,38 +241,8 @@ if __name__ == '__main__':
     #                  "bacterialinfectionsindogs","bacterialinfectionsfoundhere","bacterialinfectionsarethebest",
     #                  "bacterialinfectionsandsethrogen"]
 
+    cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop)
     save_path = Path(
         '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR/AMR 01 Jan 2017 - 01 July 2023_specific hashtags_test.csv')
-
-    cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop, save_path=save_path)
+    organised_data(cleaned_df, save_path=save_path)
     print("Data successfully processed and saved to modified_test.csv.")
-
-
-def organised_data(df: pd.DataFrame,
-                   save_path: Optional[Path] = None) -> pd.DataFrame:
-    df['Caption'] = df['Caption'].apply(lambda x: [str(item) for item in x])
-    # to convert each element in the 'Caption' column into a list of strings.
-    df['URL'] = df['URL'].apply(lambda x: [str(item) for item in x])
-    # It's applied to each element x in the 'URL' column. It converts each element into a string using str(item) and
-    # places it in a list.
-
-    # Create a new df. each Caption and URL is unique in each cell. But the name ane url keep the same
-    new_df = pd.DataFrame({
-        'name': df['name'].repeat(df['Caption'].apply(len)),
-        'url': df['url'].repeat(df['URL'].apply(len)),
-        'Caption': [caption for captions in df['Caption'] for caption in captions],
-        # Extracting each element from every column and writing them into individual cells.
-        'URL': [url for urls in df['URL'] for url in urls]
-    })
-
-    # reset index
-    new_df.reset_index(drop=True, inplace=True)
-
-    if save_path:
-        new_df.to_csv(save_path)
-
-    return new_df
-
-save_path = (
-    '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR/AMR 01 Jan 2017 - 01 July 2023_test.csv')
-organised_data(df, save_path=save_path)
