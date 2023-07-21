@@ -88,22 +88,24 @@ def cleandata(df: pd.DataFrame,
         df.to_excel(save_path)
     print(df)
     return df
+
+
 def organised_data(df: pd.DataFrame,
                    save_path: Optional[Path] = None) -> pd.DataFrame:
     df['Caption'] = df['Caption'].apply(lambda x: [str(item) for item in x])
-    # to convert each element in the 'Caption' column into a list of strings.
     df['URL'] = df['URL'].apply(lambda x: [str(item) for item in x])
-    # It's applied to each element x in the 'URL' column. It converts each element into a string using str(item) and
-    # places it in a list.
 
     # Create a new df. each Caption and URL is unique in each cell. But the name ane url keep the same
     new_df = pd.DataFrame({
         'name': df['name'].repeat(df['Caption'].apply(len)),
         'url': df['url'].repeat(df['URL'].apply(len)),
         'Caption': [caption for captions in df['Caption'] for caption in captions],
-        # Extracting each element from every column and writing them into individual cells.
         'URL': [url for urls in df['URL'] for url in urls]
     })
+
+    # Merge cells for 'name' and 'url'
+    new_df['name'] = new_df['name'].mask(new_df['name'].duplicated(), '')
+    new_df['url'] = new_df['url'].mask(new_df['url'].duplicated(), '')
 
     # reset index
     new_df.reset_index(drop=True, inplace=True)
