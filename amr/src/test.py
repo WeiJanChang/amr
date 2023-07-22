@@ -139,7 +139,7 @@ if __name__ == '__main__':
          "americanhorrorstory", "amerika", "americafirst", "americanboy", "americancars",
          "americanbullies", "americanflag", "americanpitbullterrier", "americalatina", "pastaamericana",
          "godblessamerica", "capitaoamerica", "amersfoort", "americanstaffordshire", "americasteam",
-         "feriaamericana", "visitsouthamerica", "americanbullyofficial", "americanbullypuppy","americanbullyxl",
+         "feriaamericana", "visitsouthamerica", "americanbullyofficial", "americanbullypuppy", "americanbullyxl",
          "americanbully", "americancar", "amrap", "captainamericacivilwar",
          "keepamericagreat", "amravati"],
         ["antimicrobialresistanceintanzania", "antimicrobialresistanceindonesia", "antimicrobialresistancetanzania",
@@ -207,61 +207,127 @@ if __name__ == '__main__':
         cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop)
         save_path = Path(
             '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
-        organised_data(cleaned_df, save_path=save_path)
+        new_df = organised_data(cleaned_df, save_path=save_path)
 
     print("Data successfully processed and saved to modified_test.csv.")
+#
+#     from sklearn.feature_extraction.text import CountVectorizer
+#     from sklearn.decomposition import LatentDirichletAllocation
+#
+#
+#     def preprocess_caption(captions):
+#         # Convert each caption to lowercase and tokenize
+#         processed_captions = []
+#         for caption in captions:
+#             tokens = caption.lower().split()
+#             # Remove stopwords (you may need to define your own list of stopwords)
+#             stopwords = set(
+#                 ["the", "is", "and", "a", "an", "in", "of", "on", "for", "to", "with", "by", "from", "at", "that",
+#                  "it"])
+#             tokens = [token for token in tokens if token not in stopwords]
+#             processed_captions.append(" ".join(tokens))
+#         return processed_captions
+#
+# # Step 1: Preprocess captions
+#     cleaned_df['Preprocessed_Caption'] = cleaned_df['Caption'].apply(preprocess_caption)
+#
+#     # Step 2: Vectorize captions using CountVectorizer (you can also use TF-IDF)
+#     vectorizer = CountVectorizer(max_features=1000)  # You can adjust the number of features based on your data size
+#     X = vectorizer.fit_transform(cleaned_df['Preprocessed_Caption'].apply(lambda x: " ".join(x)))
+#
+#     # Step 3: Apply LDA for Topic Modeling
+#     num_topics = 11  # You can adjust the number of topics based on your data
+#     lda_model = LatentDirichletAllocation(n_components=num_topics, random_state=42)
+#     document_topics = lda_model.fit_transform(X)
+#
+#     # Display the top words for each topic and store in DataFrame
+#     feature_names = vectorizer.get_feature_names_out()
+#     top_words_list = []
+#     for topic_idx, topic in enumerate(lda_model.components_):
+#         top_words_idx = topic.argsort()[:-11:-1]
+#         top_words = [feature_names[i] for i in top_words_idx]
+#         top_words_list.append(', '.join(top_words))
+#         print(f"Topic {topic_idx + 1}: {', '.join(top_words)}")
+#
+#     # Add the topic probabilities to the DataFrame
+#     for i in range(num_topics):
+#         cleaned_df[f"Topic_{i + 1}"] = document_topics[:, i]
+#
+#     # Identify the dominant topic for each caption
+#     cleaned_df['Dominant_Topic'] = document_topics.argmax(axis=1) + 1
+#
+#     # Add the top words to the DataFrame
+#     cleaned_df['Top_Words'] = top_words_list
+#
+#     # Display the DataFrame with the dominant topic and top words for each caption
+#     print(cleaned_df[['Caption', 'Dominant_Topic', 'Top_Words']])
+#
+#     # Save the modified DataFrame to a new CSV file
+#     modified_save_path = Path('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/test.csv')
+#     cleaned_df.to_csv(modified_save_path, index=False)
 
-    from sklearn.feature_extraction.text import CountVectorizer
-    from sklearn.decomposition import LatentDirichletAllocation
+# Topic modelling
+import gensim  # the library for Topic modelling
+from gensim.models.ldamulticore import LdaMulticore
+from gensim import corpora, models
+import pyLDAvis.gensim  # LDA visualization library
+import nltk
+
+nltk.download('stopwords')
+nltk.download('wordnet')
+from nltk.corpus import stopwords
+import string
+from nltk.stem.wordnet import WordNetLemmatizer
+import warnings
+
+warnings.simplefilter('ignore')
+from itertools import chain
+
+# Step 1: clean the data
+
+stop = set(stopwords.words('english'))
+exclude = set(string.punctuation)
+lemma = WordNetLemmatizer()
+import re
+import emoji
 
 
-    def preprocess_caption(captions):
-        # Convert each caption to lowercase and tokenize
-        processed_captions = []
-        for caption in captions:
-            tokens = caption.lower().split()
-            # Remove stopwords (you may need to define your own list of stopwords)
-            stopwords = set(
-                ["the", "is", "and", "a", "an", "in", "of", "on", "for", "to", "with", "by", "from", "at", "that",
-                 "it"])
-            tokens = [token for token in tokens if token not in stopwords]
-            processed_captions.append(" ".join(tokens))
-        return processed_captions
+def remove_emoji(text):
+    # 使用 emoji 库來找出所有 emoji 表情符號
+    emoji_pattern = re.compile("["
+                               u"\U0001F600-\U0001F64F"  # 表情符號 (emoticons)
+                               u"\U0001F300-\U0001F5FF"  # 圖形和裝飾符號
+                               u"\U0001F680-\U0001F6FF"  # 交通和地圖符號
+                               u"\U0001F1E0-\U0001F1FF"  # 國旗 (emoji 表情符號)
+                               u"\U00002702-\U000027B0"  # 裝飾符號
+                               u"\U000024C2-\U0001F251"  # 更多裝飾符號
+                               "]+", flags=re.UNICODE)
 
-# Step 1: Preprocess captions
-    cleaned_df['Preprocessed_Caption'] = cleaned_df['Caption'].apply(preprocess_caption)
+    # 使用 emoji 库來將 emoji 表情符號替換為空字符串
+    return emoji_pattern.sub(r'', text)
 
-    # Step 2: Vectorize captions using CountVectorizer (you can also use TF-IDF)
-    vectorizer = CountVectorizer(max_features=1000)  # You can adjust the number of features based on your data size
-    X = vectorizer.fit_transform(cleaned_df['Preprocessed_Caption'].apply(lambda x: " ".join(x)))
 
-    # Step 3: Apply LDA for Topic Modeling
-    num_topics = 11  # You can adjust the number of topics based on your data
-    lda_model = LatentDirichletAllocation(n_components=num_topics, random_state=42)
-    document_topics = lda_model.fit_transform(X)
+def clean(text):
+    # 去除 hashtags
+    text_without_hashtags = ' '.join([word for word in text.lower().split() if not word.startswith('#')])
 
-    # Display the top words for each topic and store in DataFrame
-    feature_names = vectorizer.get_feature_names_out()
-    top_words_list = []
-    for topic_idx, topic in enumerate(lda_model.components_):
-        top_words_idx = topic.argsort()[:-11:-1]
-        top_words = [feature_names[i] for i in top_words_idx]
-        top_words_list.append(', '.join(top_words))
-        print(f"Topic {topic_idx + 1}: {', '.join(top_words)}")
+    # 去除 emoji 表情符號
+    text_without_emoji = remove_emoji(text_without_hashtags)
 
-    # Add the topic probabilities to the DataFrame
-    for i in range(num_topics):
-        cleaned_df[f"Topic_{i + 1}"] = document_topics[:, i]
+    # 非 hashtags 和 emoji 文字處理
+    stop_free = [word for word in text_without_emoji.split() if word not in stop]
+    punc_free = [ch for ch in stop_free if ch not in exclude]
+    normalized = [lemma.lemmatize(word) for word in punc_free]
 
-    # Identify the dominant topic for each caption
-    cleaned_df['Dominant_Topic'] = document_topics.argmax(axis=1) + 1
+    return normalized
 
-    # Add the top words to the DataFrame
-    cleaned_df['Top_Words'] = top_words_list
 
-    # Display the DataFrame with the dominant topic and top words for each caption
-    print(cleaned_df[['Caption', 'Dominant_Topic', 'Top_Words']])
+new_df['Caption_clean'] = new_df['Caption'].apply(clean)
 
-    # Save the modified DataFrame to a new CSV file
-    modified_save_path = Path('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/test.csv')
-    cleaned_df.to_csv(modified_save_path, index=False)
+# 透過逗號分隔單詞並以字串形式保存到 CSV 文件中
+new_df['Caption_clean_str'] = new_df['Caption_clean'].apply(lambda x: ', '.join(x))
+
+new_df.to_csv(
+    '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_topic text.csv',
+    index=False)
+print(new_df)
