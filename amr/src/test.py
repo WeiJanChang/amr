@@ -24,7 +24,7 @@ Step 3. data cleaning: create a condition to select useful hashtags
 Step 4: Merge Instagram and Twitter data
 
 """
-
+import os
 from pathlib import Path  # pathlib: module, Path: class. Checking if a path exist
 from typing import Optional, List, Dict, Tuple  # typing: support for type hint
 import pandas as pd
@@ -118,7 +118,7 @@ def organised_data(df: pd.DataFrame,
 
 
 if __name__ == '__main__':
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections')
+    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics')
     # Print the captions and URLs for easy reference
     df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions))
 
@@ -205,66 +205,11 @@ if __name__ == '__main__':
 
     for keywords_drop in keyword_sets:
         cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop)
-        save_path = Path(
-            '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
-        new_df = organised_data(cleaned_df, save_path=save_path)
+#        save_path = Path(
+#            '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
+        new_df = organised_data(cleaned_df)
 
     print("Data successfully processed and saved to modified_test.csv.")
-#
-#     from sklearn.feature_extraction.text import CountVectorizer
-#     from sklearn.decomposition import LatentDirichletAllocation
-#
-#
-#     def preprocess_caption(captions):
-#         # Convert each caption to lowercase and tokenize
-#         processed_captions = []
-#         for caption in captions:
-#             tokens = caption.lower().split()
-#             # Remove stopwords (you may need to define your own list of stopwords)
-#             stopwords = set(
-#                 ["the", "is", "and", "a", "an", "in", "of", "on", "for", "to", "with", "by", "from", "at", "that",
-#                  "it"])
-#             tokens = [token for token in tokens if token not in stopwords]
-#             processed_captions.append(" ".join(tokens))
-#         return processed_captions
-#
-# # Step 1: Preprocess captions
-#     cleaned_df['Preprocessed_Caption'] = cleaned_df['Caption'].apply(preprocess_caption)
-#
-#     # Step 2: Vectorize captions using CountVectorizer (you can also use TF-IDF)
-#     vectorizer = CountVectorizer(max_features=1000)  # You can adjust the number of features based on your data size
-#     X = vectorizer.fit_transform(cleaned_df['Preprocessed_Caption'].apply(lambda x: " ".join(x)))
-#
-#     # Step 3: Apply LDA for Topic Modeling
-#     num_topics = 11  # You can adjust the number of topics based on your data
-#     lda_model = LatentDirichletAllocation(n_components=num_topics, random_state=42)
-#     document_topics = lda_model.fit_transform(X)
-#
-#     # Display the top words for each topic and store in DataFrame
-#     feature_names = vectorizer.get_feature_names_out()
-#     top_words_list = []
-#     for topic_idx, topic in enumerate(lda_model.components_):
-#         top_words_idx = topic.argsort()[:-11:-1]
-#         top_words = [feature_names[i] for i in top_words_idx]
-#         top_words_list.append(', '.join(top_words))
-#         print(f"Topic {topic_idx + 1}: {', '.join(top_words)}")
-#
-#     # Add the topic probabilities to the DataFrame
-#     for i in range(num_topics):
-#         cleaned_df[f"Topic_{i + 1}"] = document_topics[:, i]
-#
-#     # Identify the dominant topic for each caption
-#     cleaned_df['Dominant_Topic'] = document_topics.argmax(axis=1) + 1
-#
-#     # Add the top words to the DataFrame
-#     cleaned_df['Top_Words'] = top_words_list
-#
-#     # Display the DataFrame with the dominant topic and top words for each caption
-#     print(cleaned_df[['Caption', 'Dominant_Topic', 'Top_Words']])
-#
-#     # Save the modified DataFrame to a new CSV file
-#     modified_save_path = Path('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/test.csv')
-#     cleaned_df.to_csv(modified_save_path, index=False)
 
 # Topic modelling
 import gensim  # the library for Topic modelling
@@ -272,9 +217,8 @@ from gensim.models.ldamulticore import LdaMulticore
 from gensim import corpora, models
 import pyLDAvis.gensim  # LDA visualization library
 import nltk
-
-nltk.download('stopwords')
-nltk.download('wordnet')
+from lda import lda
+from IPython.display import HTML
 from nltk.corpus import stopwords
 import string
 from nltk.stem.wordnet import WordNetLemmatizer
@@ -289,32 +233,29 @@ stop = set(stopwords.words('english'))
 exclude = set(string.punctuation)
 lemma = WordNetLemmatizer()
 import re
-import emoji
 
 
 def remove_emoji(text):
-    # 使用 emoji 库來找出所有 emoji 表情符號
     emoji_pattern = re.compile("["
-                               u"\U0001F600-\U0001F64F"  # 表情符號 (emoticons)
-                               u"\U0001F300-\U0001F5FF"  # 圖形和裝飾符號
-                               u"\U0001F680-\U0001F6FF"  # 交通和地圖符號
-                               u"\U0001F1E0-\U0001F1FF"  # 國旗 (emoji 表情符號)
-                               u"\U00002702-\U000027B0"  # 裝飾符號
-                               u"\U000024C2-\U0001F251"  # 更多裝飾符號
+                               u"\U0001F600-\U0001F64F"  # Emoticons
+                               u"\U0001F300-\U0001F5FF"  # Graphical and Decorative Symbols
+                               u"\U0001F680-\U0001F6FF"  # Traffic and Map Symbols
+                               u"\U0001F1E0-\U0001F1FF"  # National Flags
+                               u"\U00002702-\U000027B0"  # Decorative Symbols
+                               u"\U000024C2-\U0001F251"  # More Decorative Symbols
                                "]+", flags=re.UNICODE)
 
-    # 使用 emoji 库來將 emoji 表情符號替換為空字符串
     return emoji_pattern.sub(r'', text)
 
 
 def clean(text):
-    # 去除 hashtags
+    # remove hashtags
     text_without_hashtags = ' '.join([word for word in text.lower().split() if not word.startswith('#')])
 
-    # 去除 emoji 表情符號
+    # remove emoji
     text_without_emoji = remove_emoji(text_without_hashtags)
 
-    # 非 hashtags 和 emoji 文字處理
+    # Non-hashtags and emoji text processing
     stop_free = [word for word in text_without_emoji.split() if word not in stop]
     punc_free = [ch for ch in stop_free if ch not in exclude]
     normalized = [lemma.lemmatize(word) for word in punc_free]
@@ -324,10 +265,32 @@ def clean(text):
 
 new_df['Caption_clean'] = new_df['Caption'].apply(clean)
 
-# 透過逗號分隔單詞並以字串形式保存到 CSV 文件中
-new_df['Caption_clean_str'] = new_df['Caption_clean'].apply(lambda x: ', '.join(x))
+# Step 2: Create Dictionary from the articles
+dictionary = corpora.Dictionary(new_df['Caption_clean'])
+
+# Step 3: Create document term matric
+doc_term_matrix = [dictionary.doc2bow(doc) for doc in new_df['Caption_clean']]
+
+# print(dictionary.num_nnz)
+# print(len(doc_term_matrix))
+
+# Step 4: Instantiate LDA model
+lda = gensim.models.ldamodel.LdaModel
+
+# Step 5: print the topics identified by LDA model
+
+num_topics = 3
+ldamodel = lda(doc_term_matrix, num_topics=num_topics, id2word=dictionary, passes=50, minimum_probability=0)
+print(ldamodel.print_topics(num_topics=num_topics))
+
+# Step 6:Visualize the LDA model results
+lda_display = pyLDAvis.gensim.prepare(ldamodel, doc_term_matrix, dictionary, sort_topics=False, mds='mmds')
+# save to HTML that can open on web
+pyLDAvis.save_html(lda_display, 'LDA_Visualization.html')
+import webbrowser
+
+webbrowser.open('file://' + os.path.realpath('LDA_Visualization.html')) # can't overlapping the circle--> not a good model fit --> shorter the num_topics
 
 new_df.to_csv(
-    '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_topic text.csv',
+    '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_topic texts.csv',
     index=False)
-print(new_df)
