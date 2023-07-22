@@ -30,6 +30,8 @@ from typing import Optional, List, Dict, Tuple  # typing: support for type hint
 import pandas as pd
 from typing import Union
 
+from nltk.metrics import scores
+
 
 # Load json file
 def load_json(p: Union[Path, str]) -> pd.DataFrame:
@@ -205,11 +207,11 @@ if __name__ == '__main__':
 
     for keywords_drop in keyword_sets:
         cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop)
-#        save_path = Path(
-#            '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
-        new_df = organised_data(cleaned_df)
+    save_path = Path(
+        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
+    new_df = organised_data(cleaned_df, save_path=save_path)
 
-    print("Data successfully processed and saved to modified_test.csv.")
+print("Data successfully processed and saved to modified_test.csv.")
 
 # Topic modelling
 import gensim  # the library for Topic modelling
@@ -223,6 +225,7 @@ from nltk.corpus import stopwords
 import string
 from nltk.stem.wordnet import WordNetLemmatizer
 import warnings
+import webbrowser
 
 warnings.simplefilter('ignore')
 from itertools import chain
@@ -278,7 +281,7 @@ doc_term_matrix = [dictionary.doc2bow(doc) for doc in new_df['Caption_clean']]
 lda = gensim.models.ldamodel.LdaModel
 
 # Step 5: print the topics identified by LDA model
-
+# can't overlapping the circle (see on the web)--> If overlapped--> not a good model fit --> shorter the num_topics
 num_topics = 3
 ldamodel = lda(doc_term_matrix, num_topics=num_topics, id2word=dictionary, passes=50, minimum_probability=0)
 print(ldamodel.print_topics(num_topics=num_topics))
@@ -287,9 +290,31 @@ print(ldamodel.print_topics(num_topics=num_topics))
 lda_display = pyLDAvis.gensim.prepare(ldamodel, doc_term_matrix, dictionary, sort_topics=False, mds='mmds')
 # save to HTML that can open on web
 pyLDAvis.save_html(lda_display, 'LDA_Visualization.html')
-import webbrowser
 
-webbrowser.open('file://' + os.path.realpath('LDA_Visualization.html')) # can't overlapping the circle--> not a good model fit --> shorter the num_topics
+webbrowser.open('file://' + os.path.realpath('LDA_Visualization.html'))
+
+# Step 7: Find which articles were marked in which cluster
+# Assigns the topics to the documents in corpus
+lda_corpus = ldamodel[doc_term_matrix]
+print([doc for doc in lda_corpus])
+scores = list(chain(*[[score for topic_id, score in topic] \
+                      for topic in [doc for doc in lda_corpus]]))
+threshold = sum(scores) / len(scores)
+print(threshold)
+
+cluster1 = [j for i, j in zip(lda_corpus, df.index) if i[0][1] > threshold]
+cluster2 = [j for i, j in zip(lda_corpus, df.index) if i[0][1] > threshold]
+cluster3 = [j for i, j in zip(lda_corpus, df.index) if i[0][1] > threshold]
+print(len(cluster1))
+print(len(cluster2))
+print(len(cluster3))
+
+print(new_df.iloc[cluster1])
+print(new_df.iloc[cluster2])
+clusterdf = new_df.iloc[cluster3]
+clusterdf.to_csv(
+    '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_topic texts cluster test.csv',
+    index=False)
 
 new_df.to_csv(
     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_topic texts.csv',
