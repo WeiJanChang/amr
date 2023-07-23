@@ -29,11 +29,31 @@ from pathlib import Path  # pathlib: module, Path: class. Checking if a path exi
 from typing import Optional, List, Dict, Tuple  # typing: support for type hint
 import pandas as pd
 from typing import Union
+import json
+import re
+import emoji
 
-from nltk.metrics import scores
+
+def remove_emojis(text):
+    return emoji.demojize(text)
 
 
-# Load json file
+def remove_emojis_from_json(json_data):
+    if isinstance(json_data, dict):
+        for key, value in json_data.items():
+            if isinstance(value, str):
+                json_data[key] = remove_emojis(value)
+            elif isinstance(value, dict) or isinstance(value, list):
+                remove_emojis_from_json(value)
+    elif isinstance(json_data, list):
+        for i in range(len(json_data)):
+            if isinstance(json_data[i], str):
+                json_data[i] = remove_emojis(json_data[i])
+            elif isinstance(json_data[i], dict) or isinstance(json_data[i], list):
+                remove_emojis_from_json(json_data[i])
+    return json_data
+
+
 def load_json(p: Union[Path, str]) -> pd.DataFrame:
     """
     load json file
@@ -41,21 +61,25 @@ def load_json(p: Union[Path, str]) -> pd.DataFrame:
     :return:
         pd.DataFrame
     """
-    if isinstance(p, str):  # if the variable p is an instance of the str class
-        p = Path(p)  # if yes, creates a new object of 'Path' class and assigns it to the variable 'p'
+    if isinstance(p, str):
+        p = Path(p)
 
     if 'json' in p.name:
-        return pd.read_json(p, encoding='utf-8')
-        # If the json in the p.name--> read the file. If the string "json" is not in the "name" attribute, this block
-        # of code will not execute and the function will return nothing or continue with the next step of code.
+        with p.open(encoding='utf-8') as file:
+            json_data = json.load(file)
+            # 刪除表情符號和圖案
+            json_data_without_emojis = remove_emojis_from_json(json_data)
+            return pd.DataFrame(json_data_without_emojis)
     else:
-        f = list(
-            p.glob('*.json'))  # To check if there is any json file present in the path p or not by using glob method
-        # and return a list of all the json files stored in 'p'
+        f = list(p.glob('*.json'))
         if len(f) == 0:
             raise FileNotFoundError(f'no json file under the {p}')
         elif len(f) == 1:
-            return pd.read_json(f[0], encoding='utf-8')
+            with f[0].open(encoding='utf-8') as file:
+                json_data = json.load(file)
+                # remove emojis
+                json_data_without_emojis = remove_emojis_from_json(json_data)
+                return pd.DataFrame(json_data_without_emojis)
         else:
             raise RuntimeError(f'multiple json files under the {p}')
 
@@ -80,11 +104,14 @@ def extract_captions(posts):
 
 def cleandata(df: pd.DataFrame,
               column_drop: Optional[List[str]] = None,
+
               keywords_drop: Optional[List[str]] = None,
               save_path: Optional[Path] = None) -> pd.DataFrame:
     df = df.copy()
+
     if column_drop is not None:
         df = df.drop(columns=column_drop)
+
     if keywords_drop is not None:
         df = df[df['name'].isin(keywords_drop) == False]
     if save_path is not None:
@@ -206,140 +233,143 @@ if __name__ == '__main__':
          "bacterialinfectionsandsethrogen"]]
 
     for keywords_drop in keyword_sets:
-        cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop)
+
+        cleaned_df = cleandata(df, column_drop=column_drop,
+                               keywords_drop=keywords_drop)
     save_path = Path(
         '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
     new_df = organised_data(cleaned_df, save_path=save_path)
-    import re
 
 
-    # 定義檢測函數，檢測文本是否包含非英文的語言
+    # # remove non-English languages
     def contains_non_english(text):
-        pattern = r'[^\x00-\x7F]+'  # 非英文的正則表達式
+        pattern = r'[^\x00-\x7F]+'
         return bool(re.search(pattern, text))
 
 
-    # 將檢測函數應用到 DataFrame 的每一行，獲取包含非英文的行的索引
     indices_to_drop = new_df[new_df['Caption'].apply(contains_non_english)].index
 
-    # 從 DataFrame 中刪除這些行
-    new_df.drop(indices_to_drop, inplace=True)
+    new_df.loc[indices_to_drop, ['Caption', 'URL']] = None
+
+    new_df.to_csv(
+        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_specific hashtags test.csv')
 
 print("Data successfully processed and saved to modified_test.csv.")
-
-# Topic modelling
-import gensim  # the library for Topic modelling
-from gensim.models.ldamulticore import LdaMulticore
-from gensim import corpora, models
-import pyLDAvis.gensim  # LDA visualization library
-import nltk  # Natural Language Toolkit
-from lda import lda
-from IPython.display import HTML
-from nltk.corpus import stopwords, words
-
-import string
-from nltk.stem.wordnet import WordNetLemmatizer
-import warnings
-import webbrowser
-
-# warnings.simplefilter('ignore')
-from itertools import chain  # To merge multiple lists into a single list
-
-# Step 1: clean the data
-
-stop = set(stopwords.words('english'))  # Examples of stopwords include "the," "a," "an," "in," "on," etc. The
-# stopwords module from the nltk library provides a list of common stopwords in different languages, and here we are
-# using the ones for English
-
-exclude = set(string.punctuation)
-lemma = WordNetLemmatizer()  # For example, the lemma of the words "running," "runs," and "ran" is "run." The
-# WordNetLemmatizer class uses the WordNet lexical database to perform lemmatization. This helps reduce inflected
-# words to a common base form, which can be useful for text analysis and processing tasks
-import re
-
-
-def remove_emoji(text):
-    text_without_emoji = re.sub(r'[^\w\s,]', '', text)
-    return text_without_emoji
-
-
-def clean(text):
-    # remove hashtags
-    text_without_hashtags = ' '.join([word for word in text.lower().split() if not word.startswith('#')])
-
-    # remove emoji
-    text_without_emoji = remove_emoji(text_without_hashtags)
-    english_vocab = set(words.words())
-    words_only_english = [word for word in text.split() if word.lower() in english_vocab]
-
-    # Non-hashtags and emoji text processing
-    stop_free = [word for word in text_without_emoji.split() if word not in stop]
-    punc_free = [ch for ch in stop_free if ch not in exclude]
-    normalized = [lemma.lemmatize(word) for word in punc_free]
-    # Combine normalized with words_only_english
-    normalized.extend(words_only_english)
-    return normalized
-
-
-new_df['Caption_clean'] = new_df['Caption'].apply(clean)
-
-# Step 2: Create Dictionary from the articles
-dictionary = corpora.Dictionary(new_df['Caption_clean'])
-
-# Step 3: Create document term matric
-doc_term_matrix = [dictionary.doc2bow(doc) for doc in new_df['Caption_clean']]  # The doc2bow function from the
-# dictionary object is used to convert each preprocessed document (in the form of a list of words) into a
-# bag-of-words representation. It returns a list of tuples, where each tuple contains the word's ID and its frequency
-# in the document. The resulting doc_term_matrix is a list of such tuples for each document.
-
-# print(dictionary.num_nnz)
-# print(len(doc_term_matrix))
-
-# Step 4: Instantiate LDA model
-lda = gensim.models.ldamodel.LdaModel
-
-# Step 5: print the topics identified by LDA model
-# can't overlapping the circle (see on the web)--> If overlapped--> not a good model fit --> shorter the num_topics
-num_topics = 3
-ldamodel = lda(doc_term_matrix, num_topics=num_topics, id2word=dictionary, passes=50, minimum_probability=0)
-# doc_term_matrix: The document-term matrix created in Step 3.
-# num_topics: The number of topics to be identified by the LDA model (in this case, set to 3).
-# id2word: The dictionary created in Step 2, which maps word IDs to words.
-# passes: The number of passes through the entire corpus during training.
-# minimum_probability: The minimum probability value required for a word to be considered in a topic
-# (set to 0, meaning all words are included).
-print(ldamodel.print_topics(num_topics=num_topics))
-
-# Step 6:Visualize the LDA model results
-lda_display = pyLDAvis.gensim.prepare(ldamodel, doc_term_matrix, dictionary, sort_topics=False, mds='mmds')
-# save to HTML that can open on web
-pyLDAvis.save_html(lda_display, 'LDA_Visualization.html')
-
-webbrowser.open('file://' + os.path.realpath('LDA_Visualization.html'))
-
-# Step 7: Find which articles were marked in which cluster
-# Assigns the topics to the documents in corpus
-lda_corpus = ldamodel[doc_term_matrix]
-print([doc for doc in lda_corpus])
-scores = list(chain(*[[score for topic_id, score in topic] \
-                      for topic in [doc for doc in lda_corpus]]))
-threshold = sum(scores) / len(scores)
-print(threshold)
-
-cluster1 = [j for i, j in zip(lda_corpus, df.index) if i[0][1] > threshold]
-cluster2 = [j for i, j in zip(lda_corpus, df.index) if i[0][1] > threshold]
-cluster3 = [j for i, j in zip(lda_corpus, df.index) if i[0][1] > threshold]
-print(len(cluster1))
-print(len(cluster2))
-print(len(cluster3))
-
-print(new_df.iloc[cluster1])
-print(new_df.iloc[cluster2])
-clusterdf = new_df.iloc[cluster3]
-clusterdf.to_csv(
-    '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_topic texts cluster test.csv',
-    index=False)
-
-new_df.to_csv(
-    '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_topic texts.csv',
-    index=False)
+#
+# # Topic modelling
+# import gensim  # the library for Topic modelling
+# from gensim.models.ldamulticore import LdaMulticore
+# from gensim import corpora, models
+# import pyLDAvis.gensim  # LDA visualization library
+# import nltk  # Natural Language Toolkit
+# from lda import lda
+# from IPython.display import HTML
+# from nltk.corpus import stopwords, words
+#
+# import string
+# from nltk.stem.wordnet import WordNetLemmatizer
+# import warnings
+# import webbrowser
+#
+# # warnings.simplefilter('ignore')
+# from itertools import chain  # To merge multiple lists into a single list
+#
+# # Step 1: clean the data
+#
+# stop = set(stopwords.words('english'))  # Examples of stopwords include "the," "a," "an," "in," "on," etc. The
+# # stopwords module from the nltk library provides a list of common stopwords in different languages, and here we are
+# # using the ones for English
+#
+# exclude = set(string.punctuation)
+# lemma = WordNetLemmatizer()  # For example, the lemma of the words "running," "runs," and "ran" is "run." The
+#
+#
+# # WordNetLemmatizer class uses the WordNet lexical database to perform lemmatization. This helps reduce inflected
+# # words to a common base form, which can be useful for text analysis and processing tasks
+#
+#
+# def remove_emoji(text):
+#     text_without_emoji = re.sub(r'[^\w\s,]', '', text)
+#     return text_without_emoji
+#
+#
+# def clean(text):
+#     # remove hashtags
+#     text_without_hashtags = ' '.join([word for word in text.lower().split() if not word.startswith('#')])
+#
+#     # remove emoji
+#     text_without_emoji = remove_emoji(text_without_hashtags)
+#     english_vocab = set(words.words())
+#     words_only_english = [word for word in text.split() if word.lower() in english_vocab]
+#
+#     # Non-hashtags and emoji text processing
+#     stop_free = [word for word in text_without_emoji.split() if word not in stop]
+#     punc_free = [ch for ch in stop_free if ch not in exclude]
+#     normalized = [lemma.lemmatize(word) for word in punc_free]
+#     # Combine normalized with words_only_english
+#     normalized.extend(words_only_english)
+#     return normalized
+#
+#
+# new_df['Caption_clean'] = new_df['Caption'].apply(clean)
+#
+# # Step 2: Create Dictionary from the articles
+# dictionary = corpora.Dictionary(new_df['Caption_clean'])
+#
+# # Step 3: Create document term matric
+# doc_term_matrix = [dictionary.doc2bow(doc) for doc in new_df['Caption_clean']]  # The doc2bow function from the
+# # dictionary object is used to convert each preprocessed document (in the form of a list of words) into a
+# # bag-of-words representation. It returns a list of tuples, where each tuple contains the word's ID and its frequency
+# # in the document. The resulting doc_term_matrix is a list of such tuples for each document.
+#
+# # print(dictionary.num_nnz)
+# # print(len(doc_term_matrix))
+#
+# # Step 4: Instantiate LDA model
+# lda = gensim.models.ldamodel.LdaModel
+#
+# # Step 5: print the topics identified by LDA model
+# # can't overlapping the circle (see on the web)--> If overlapped--> not a good model fit --> shorter the num_topics
+# num_topics = 3
+# ldamodel = lda(doc_term_matrix, num_topics=num_topics, id2word=dictionary, passes=50, minimum_probability=0)
+# # doc_term_matrix: The document-term matrix created in Step 3.
+# # num_topics: The number of topics to be identified by the LDA model (in this case, set to 3).
+# # id2word: The dictionary created in Step 2, which maps word IDs to words.
+# # passes: The number of passes through the entire corpus during training.
+# # minimum_probability: The minimum probability value required for a word to be considered in a topic
+# # (set to 0, meaning all words are included).
+# print(ldamodel.print_topics(num_topics=num_topics))
+#
+# # Step 6:Visualize the LDA model results
+# lda_display = pyLDAvis.gensim.prepare(ldamodel, doc_term_matrix, dictionary, sort_topics=False, mds='mmds')
+# # save to HTML that can open on web
+# pyLDAvis.save_html(lda_display, 'LDA_Visualization.html')
+#
+# webbrowser.open('file://' + os.path.realpath('LDA_Visualization.html'))
+#
+# # Step 7: Find which articles were marked in which cluster
+# # Assigns the topics to the documents in corpus
+# lda_corpus = ldamodel[doc_term_matrix]
+# print([doc for doc in lda_corpus])
+# scores = list(chain(*[[score for topic_id, score in topic] \
+#                       for topic in [doc for doc in lda_corpus]]))
+# threshold = sum(scores) / len(scores)
+# print(threshold)
+#
+# cluster1 = [j for i, j in zip(lda_corpus, df.index) if i[0][1] > threshold]
+# cluster2 = [j for i, j in zip(lda_corpus, df.index) if i[0][1] > threshold]
+# cluster3 = [j for i, j in zip(lda_corpus, df.index) if i[0][1] > threshold]
+# print(len(cluster1))
+# print(len(cluster2))
+# print(len(cluster3))
+#
+# print(new_df.iloc[cluster1])
+# print(new_df.iloc[cluster2])
+# clusterdf = new_df.iloc[cluster3]
+# clusterdf.to_csv(
+#     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_topic texts cluster test.csv',
+#     index=False)
+#
+# new_df.to_csv(
+#     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_topic texts.csv',
+#     index=False)
