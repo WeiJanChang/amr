@@ -147,7 +147,7 @@ def organised_data(df: pd.DataFrame,
 
 
 if __name__ == '__main__':
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics')
+    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections')
     # Print the captions and URLs for easy reference
     df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions))
 
@@ -237,7 +237,7 @@ if __name__ == '__main__':
         cleaned_df = cleandata(df, column_drop=column_drop,
                                keywords_drop=keywords_drop)
     save_path = Path(
-        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
+        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_hashtags.csv')
     new_df = organised_data(cleaned_df, save_path=save_path)
 
 
@@ -252,7 +252,7 @@ if __name__ == '__main__':
     new_df.loc[indices_to_drop, ['Caption', 'URL']] = None
 
     new_df.to_csv(
-        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_specific hashtags test.csv')
+        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
 
 print("Data successfully processed and saved to modified_test.csv.")
 #
