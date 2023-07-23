@@ -210,6 +210,20 @@ if __name__ == '__main__':
     save_path = Path(
         '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
     new_df = organised_data(cleaned_df, save_path=save_path)
+    import re
+
+
+    # 定義檢測函數，檢測文本是否包含非英文的語言
+    def contains_non_english(text):
+        pattern = r'[^\x00-\x7F]+'  # 非英文的正則表達式
+        return bool(re.search(pattern, text))
+
+
+    # 將檢測函數應用到 DataFrame 的每一行，獲取包含非英文的行的索引
+    indices_to_drop = new_df[new_df['Caption'].apply(contains_non_english)].index
+
+    # 從 DataFrame 中刪除這些行
+    new_df.drop(indices_to_drop, inplace=True)
 
 print("Data successfully processed and saved to modified_test.csv.")
 
@@ -218,37 +232,35 @@ import gensim  # the library for Topic modelling
 from gensim.models.ldamulticore import LdaMulticore
 from gensim import corpora, models
 import pyLDAvis.gensim  # LDA visualization library
-import nltk
+import nltk  # Natural Language Toolkit
 from lda import lda
 from IPython.display import HTML
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords, words
+
 import string
 from nltk.stem.wordnet import WordNetLemmatizer
 import warnings
 import webbrowser
 
-warnings.simplefilter('ignore')
-from itertools import chain
+# warnings.simplefilter('ignore')
+from itertools import chain  # To merge multiple lists into a single list
 
 # Step 1: clean the data
 
-stop = set(stopwords.words('english'))
+stop = set(stopwords.words('english'))  # Examples of stopwords include "the," "a," "an," "in," "on," etc. The
+# stopwords module from the nltk library provides a list of common stopwords in different languages, and here we are
+# using the ones for English
+
 exclude = set(string.punctuation)
-lemma = WordNetLemmatizer()
+lemma = WordNetLemmatizer()  # For example, the lemma of the words "running," "runs," and "ran" is "run." The
+# WordNetLemmatizer class uses the WordNet lexical database to perform lemmatization. This helps reduce inflected
+# words to a common base form, which can be useful for text analysis and processing tasks
 import re
 
 
 def remove_emoji(text):
-    emoji_pattern = re.compile("["
-                               u"\U0001F600-\U0001F64F"  # Emoticons
-                               u"\U0001F300-\U0001F5FF"  # Graphical and Decorative Symbols
-                               u"\U0001F680-\U0001F6FF"  # Traffic and Map Symbols
-                               u"\U0001F1E0-\U0001F1FF"  # National Flags
-                               u"\U00002702-\U000027B0"  # Decorative Symbols
-                               u"\U000024C2-\U0001F251"  # More Decorative Symbols
-                               "]+", flags=re.UNICODE)
-
-    return emoji_pattern.sub(r'', text)
+    text_without_emoji = re.sub(r'[^\w\s,]', '', text)
+    return text_without_emoji
 
 
 def clean(text):
@@ -257,12 +269,15 @@ def clean(text):
 
     # remove emoji
     text_without_emoji = remove_emoji(text_without_hashtags)
+    english_vocab = set(words.words())
+    words_only_english = [word for word in text.split() if word.lower() in english_vocab]
 
     # Non-hashtags and emoji text processing
     stop_free = [word for word in text_without_emoji.split() if word not in stop]
     punc_free = [ch for ch in stop_free if ch not in exclude]
     normalized = [lemma.lemmatize(word) for word in punc_free]
-
+    # Combine normalized with words_only_english
+    normalized.extend(words_only_english)
     return normalized
 
 
@@ -272,7 +287,10 @@ new_df['Caption_clean'] = new_df['Caption'].apply(clean)
 dictionary = corpora.Dictionary(new_df['Caption_clean'])
 
 # Step 3: Create document term matric
-doc_term_matrix = [dictionary.doc2bow(doc) for doc in new_df['Caption_clean']]
+doc_term_matrix = [dictionary.doc2bow(doc) for doc in new_df['Caption_clean']]  # The doc2bow function from the
+# dictionary object is used to convert each preprocessed document (in the form of a list of words) into a
+# bag-of-words representation. It returns a list of tuples, where each tuple contains the word's ID and its frequency
+# in the document. The resulting doc_term_matrix is a list of such tuples for each document.
 
 # print(dictionary.num_nnz)
 # print(len(doc_term_matrix))
@@ -284,6 +302,12 @@ lda = gensim.models.ldamodel.LdaModel
 # can't overlapping the circle (see on the web)--> If overlapped--> not a good model fit --> shorter the num_topics
 num_topics = 3
 ldamodel = lda(doc_term_matrix, num_topics=num_topics, id2word=dictionary, passes=50, minimum_probability=0)
+# doc_term_matrix: The document-term matrix created in Step 3.
+# num_topics: The number of topics to be identified by the LDA model (in this case, set to 3).
+# id2word: The dictionary created in Step 2, which maps word IDs to words.
+# passes: The number of passes through the entire corpus during training.
+# minimum_probability: The minimum probability value required for a word to be considered in a topic
+# (set to 0, meaning all words are included).
 print(ldamodel.print_topics(num_topics=num_topics))
 
 # Step 6:Visualize the LDA model results
