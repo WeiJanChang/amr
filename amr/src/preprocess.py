@@ -4,7 +4,7 @@ messages (themes) have been used on social media for AMR from 01 Jan 2017 to 01 
 
 pipeline
 
-Step 1. Transfer 10 hashtags files in Json to CSV file
+Step 1. read 11 hashtags files in Json (remove emoji first) and transfer to CSV file
 
 1. AMR
 2. Antimicrobial resistance
@@ -15,54 +15,95 @@ Step 1. Transfer 10 hashtags files in Json to CSV file
 7. Superbugs
 8. Antibiotic resistance
 9. Infections
-10. Antibiotic prescribing
+10. Bacterial infections
+11. Antibiotic prescribing
 
 Step 2. Selected Captions and Urls and drop usefulness headers
 
-Step 3. data cleaning: create a condition to select useful hashtags
+Step 3. data cleaning: create a condition to select useful hashtags, only English
 
-Step 4: Merge Instagram and Twitter data
-
+Step 4: run Topic modelling
 """
 
+import os
 from pathlib import Path  # pathlib: module, Path: class. Checking if a path exist
 from typing import Optional, List, Dict, Tuple  # typing: support for type hint
 import pandas as pd
 from typing import Union
+import json
+import re
+import emoji
 
 
-# Load json file
+def remove_emojis(text):
+    """
+    :param text: all text in files
+    :return: modified text replaces any emojis it finds with their textual representation
+    """
+    return emoji.demojize(text)
+
+
+def remove_emojis_from_json(json_data):
+    """
+    :param json_data: json file
+    :return: modifid json file without emoji
+    """
+    if isinstance(json_data, dict):  # "isinstance" checks if json_data is an instance of the dict class.
+        for key, value in json_data.items():
+            if isinstance(value, str):
+                json_data[key] = remove_emojis(value)
+            elif isinstance(value, dict) or isinstance(value, list):
+                remove_emojis_from_json(value)
+    elif isinstance(json_data, list):
+        for i in range(len(json_data)):
+            if isinstance(json_data[i], str):
+                json_data[i] = remove_emojis(json_data[i])
+            elif isinstance(json_data[i], dict) or isinstance(json_data[i], list):
+                remove_emojis_from_json(json_data[i])
+    return json_data
+
+
 def load_json(p: Union[Path, str]) -> pd.DataFrame:
     """
-    load json file
     :param p: json path or containing folder
-    :return:
-        pd.DataFrame
+    :return: df
     """
-    if isinstance(p, str):  # if the variable p is an instance of the str class
-        p = Path(p)  # if yes, creates a new object of 'Path' class and assigns it to the variable 'p'
+    if isinstance(p, str):
+        p = Path(p)
 
     if 'json' in p.name:
-        return pd.read_json(p, encoding='utf-8')
-        # If the json in the p.name--> read the file. If the string "json" is not in the "name" attribute, this block
-        # of code will not execute and the function will return nothing or continue with the next step of code.
+        with p.open(encoding='utf-8') as file:
+            json_data = json.load(file)
+            # remove emoji
+            json_data_without_emojis = remove_emojis_from_json(json_data)
+            return pd.DataFrame(json_data_without_emojis)
     else:
-        f = list(
-            p.glob('*.json'))  # To check if there is any json file present in the path p or not by using glob method
-        # and return a list of all the json files stored in 'p'
+        f = list(p.glob('*.json'))
         if len(f) == 0:
             raise FileNotFoundError(f'no json file under the {p}')
         elif len(f) == 1:
-            return pd.read_json(f[0], encoding='utf-8')
+            with f[0].open(encoding='utf-8') as file:
+                json_data = json.load(file)
+                # remove emojis
+                json_data_without_emojis = remove_emojis_from_json(json_data)
+                return pd.DataFrame(json_data_without_emojis)
         else:
             raise RuntimeError(f'multiple json files under the {p}')
 
 
-# Extract captions and URLs
-def extract_captions(posts):
+def extract_captions_urls(posts):
+    """
+    Extract captions and URLs from a list of posts.
+    :param posts: A list of posts, where each post is represented as a dictionary.
+                  Each post dictionary should contain information about the post,
+                  such as 'caption' for the caption text and 'url' for the post URL.
+    :return: - A list of captions extracted from the posts. Each caption is preceded by its corresponding post index.
+             - A list of URLs extracted from the posts. Each URL is preceded by its corresponding post index.
+    """
     captions = []
     urls = []
     for i, post in enumerate(posts, start=1):
+
         if 'caption' in post:
             caption = f"{i}. {post['caption']}"
             captions.append(caption)  # don't need to check for duplicate caption
@@ -75,18 +116,27 @@ def extract_captions(posts):
     return captions, urls
 
 
-def cleandata(df: pd.DataFrame,
-              column_drop: Optional[List[str]] = None,
-              keywords_drop: Optional[List[str]] = None,
-              save_path: Optional[Path] = None) -> pd.DataFrame:
+def dropdata(df: pd.DataFrame,
+             column_drop: Optional[List[str]] = None,
+             keywords_drop: Optional[List[str]] = None,
+             save_path: Optional[Path] = None) -> pd.DataFrame:
+    """
+    :param df: no emoji df
+    :param column_drop: drop useless header
+    :param keywords_drop: drop useless hashtags
+    :param save_path: save df
+    :return: modified df
+    """
     df = df.copy()
+
     if column_drop is not None:
         df = df.drop(columns=column_drop)
+
     if keywords_drop is not None:
         df = df[df['name'].isin(keywords_drop) == False]
     if save_path is not None:
-        df.to_excel(save_path)
-    print(df)
+        df.to_csv(save_path)
+
     return df
 
 
@@ -103,10 +153,6 @@ def organised_data(df: pd.DataFrame,
         'URL': [url for urls in df['URL'] for url in urls]
     })
 
-    # Merge cells for 'name' and 'url'
-    new_df['name'] = new_df['name'].mask(new_df['name'].duplicated(), '')
-    new_df['url'] = new_df['url'].mask(new_df['url'].duplicated(), '')
-
     # reset index
     new_df.reset_index(drop=True, inplace=True)
 
@@ -119,12 +165,13 @@ def organised_data(df: pd.DataFrame,
 if __name__ == '__main__':
     df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections')
     # Print the captions and URLs for easy reference
-    df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions))
+    df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions_urls()))
 
     column_drop = ['id', 'topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
 
     keyword_sets = [
-        ["infectionsurinaires", "infectionsofadiffrentkind", "infectionsaypakpunjab", "infectionsofadifferentkindpartll",
+        ["infectionsurinaires", "infectionsofadiffrentkind", "infectionsaypakpunjab",
+         "infectionsofadifferentkindpartll",
          "infectionsofadifferentkindstep1", "infectionsexuellementtransmissible", "infectionsurinaires",
          "infectionsband", "infectionssexuellementtransmissibles", "infectionsrespiratoires",
          "infectionsvaginales", "infectionsportswear", "infectionsofadifferentkindstep",
@@ -202,9 +249,28 @@ if __name__ == '__main__':
          "bacterialinfectionsandsethrogen"]]
 
     for keywords_drop in keyword_sets:
-        cleaned_df = cleandata(df, column_drop=column_drop, keywords_drop=keywords_drop)
         save_path = Path(
-            '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Bacterial infections/Bacterial infections 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
-        organised_data(cleaned_df, save_path=save_path)
+            '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_hashtags.csv')
 
-    print("Data successfully processed and saved to modified_test.csv.")
+        droped_df = dropdata(df, column_drop=column_drop, keywords_drop=keywords_drop, save_path=save_path)
+    new_df = organised_data(droped_df, save_path=save_path)
+
+
+    # # remove non-English languages
+    def contains_non_english(text):
+        pattern = r'[^\x00-\x7F]+'
+        return bool(re.search(pattern, text))
+
+
+    indices_to_drop = new_df[new_df['Caption'].apply(contains_non_english)].index
+
+    new_df.loc[indices_to_drop, ['Caption', 'URL']] = None
+    new_df.dropna(subset=['Caption', 'URL'], how='all', inplace=True)
+    # Merge cells for 'name' and 'url'
+    new_df['name'] = new_df['name'].mask(new_df['name'].duplicated(), '')
+    new_df['url'] = new_df['url'].mask(new_df['url'].duplicated(), '')
+
+new_df.to_csv(
+    '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics/Antibiotics 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
+
+print("Data successfully processed and saved to modified csv file.")
