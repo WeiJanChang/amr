@@ -105,18 +105,28 @@ def extract_captions_urls(posts):
     :return: - A list of captions extracted from the posts. Each caption is preceded by its corresponding post index.
              - A list of URLs extracted from the posts. Each URL is preceded by its corresponding post index.
     """
-    captions = []
-    urls = []
-    for i, post in enumerate(posts, start=1):
 
-        if 'caption' in post:
-            caption = f"{i}. {post['caption']}"
-            captions.append(caption)
-        if 'url' in post:
-            url = f"{i}. {post['url']}"
-            urls.append(url)
+    captions = [post.get('caption', '') for post in posts]
+    urls = [post.get('url', '') for post in posts]
+    id_var = [post.get('id', '') for post in posts]
+    return captions, urls, id_var
+    # If need to add numbering index, use codes below
+    # captions = []
+    # urls = []
+    # id_var =[]
+    # for i, post in enumerate(posts):
+    #
+    #     if 'caption' in post:
+    #         caption = f"{i}. {post['caption']}"
+    #         captions.append(caption)
+    #     if 'url' in post:
+    #         url = f"{i}. {post['url']}"
+    #         urls.append(url)
+    #     if 'id' in post:
+    #         id = f"{i}.{post['id']}"
+    #         id_var.append(id)
 
-    return captions, urls
+
 
 
 def dropdata(df: pd.DataFrame,
@@ -148,13 +158,14 @@ def organised_data(df: pd.DataFrame,
                    save_path: Optional[Path] = None) -> pd.DataFrame:
     df['Caption'] = df['Caption'].apply(lambda x: [str(item) for item in x])
     df['URL'] = df['URL'].apply(lambda x: [str(item) for item in x])
-
+    df['ID'] = df['ID'].apply(lambda x: [str(item) for item in x])
     # Create a new df. each Caption and URL is unique in each cell. But the name ane url keep the same
     new_df = pd.DataFrame({
         'name': df['name'].repeat(df['Caption'].apply(len)),
         'url': df['url'].repeat(df['URL'].apply(len)),
         'Caption': [caption for captions in df['Caption'] for caption in captions],
-        'URL': [url for urls in df['URL'] for url in urls]
+        'URL': [url for urls in df['URL'] for url in urls],
+        'ID': [id for id_var in df['ID'] for id in id_var]
     })
 
     # reset index
@@ -167,11 +178,11 @@ def organised_data(df: pd.DataFrame,
 
 
 if __name__ == '__main__':
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing')
+    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance')
     # Print the captions and URLs for easy reference
-    df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions_urls))
+    df['Caption'], df['URL'], df['ID']= zip(*df['latestPosts'].apply(extract_captions_urls))
 
-    column_drop = ['id', 'topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
+    column_drop = ['topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
 
     keyword_sets = [["infectionsurinaires", "infectionsofadiffrentkind", "infectionsaypakpunjab",
                      "infectionsofadifferentkindpartll",
@@ -261,9 +272,9 @@ if __name__ == '__main__':
                      "bacterialinfectionsandsethrogen"]]
 
     for keywords_drop in keyword_sets:
-        # save_path = Path( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Antibiotic prescribing 01 Jan 2017 - 01 July 2023_hashtags.csv')
+        save_path = Path( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance 01 Jan 2017 - 01 July 2023_hashtags.csv', index=False)
 
-        droped_df = dropdata(df, column_drop=column_drop, keywords_drop=keywords_drop)
+        droped_df = dropdata(df, column_drop=column_drop, keywords_drop=keywords_drop,save_path=save_path)
         new_df = organised_data(droped_df)
 
 
@@ -311,16 +322,14 @@ def contains_non_english(text):
 # indices_to_drop = new_df[new_df['Caption'].apply(contains_non_english)].index
 indices_to_drop = new_df[new_df.apply(lambda row: contains_non_english(row['Caption']), axis=1)].index
 
-new_df.loc[indices_to_drop, ['Caption', 'URL']] = None
-new_df.dropna(subset=['Caption', 'URL'], how='all', inplace=True)
+new_df.loc[indices_to_drop, ['Caption', 'URL','ID']] = None
+new_df.dropna(subset=['Caption', 'URL','ID'], how='all', inplace=True)
 # # Merge cells for 'name' and 'url'
 # new_df['name'] = new_df['name'].mask(new_df['name'].duplicated(), '')
 # new_df['url'] = new_df['url'].mask(new_df['url'].duplicated(), '')
 
-# new_df.to_csv( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Antibiotic prescribing 01 Jan 2017 - 01 July 2023_specific hashtags.csv', index=False)
+new_df.to_csv( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance 01 Jan 2017 - 01 July 2023_specific hashtags.csv', index=False)
 new_df.reset_index(drop=True, inplace=True)
-
-print("Data successfully processed and saved to modified csv file.")
 
 """"Topic modelling"""
 import gensim  # the library for Topic modelling
@@ -381,7 +390,7 @@ combinations through an iterative process"""
 """Step 5: print the topics identified by LDA model"""
 # can't overlapping the circle (see on the web)--> If overlapped--> not a good model fit --> shorter the num_topics
 num_topics = 3  # num_topics: The number of topics to be identified by the LDA model
-ldamodel = lda(doc_term_matrix, num_topics=num_topics, id2word=dictionary, passes=50, minimum_probability=0.7825,
+ldamodel = lda(doc_term_matrix, num_topics=num_topics, id2word=dictionary, passes=50, minimum_probability=0,
                random_state=50)
 """id2word: The dictionary created in Step 2, which maps word IDs to words.
 passes: the number of times the algorithm goes through all the documents in the dataset during the training process.
@@ -395,11 +404,11 @@ random_state: """
 # print(ldamodel.print_topics(num_topics=num_topics))
 
 """Step 6:Visualize the LDA model results"""
-warnings.simplefilter(action='ignore', category=FutureWarning)
-lda_display = pyLDAvis.gensim.prepare(ldamodel, doc_term_matrix, dictionary, sort_topics=False, mds='mmds')
-# save to HTML that can open on web
-pyLDAvis.save_html(lda_display, 'LDA_Visualization.html')
-webbrowser.open('file://' + os.path.realpath('LDA_Visualization.html'))
+# warnings.simplefilter(action='ignore', category=FutureWarning)
+# lda_display = pyLDAvis.gensim.prepare(ldamodel, doc_term_matrix, dictionary, sort_topics=False, mds='mmds')
+# # save to HTML that can open on web
+# pyLDAvis.save_html(lda_display, 'LDA_Visualization.html')
+# webbrowser.open('file://' + os.path.realpath('LDA_Visualization.html'))
 
 """Step 7: Find which articles were marked in which cluster"""
 # Assigns the topics to the documents in corpus
@@ -449,13 +458,14 @@ for doc_index, doc_topics in enumerate(topic_distribution):
         cluster_3_df = new_df.loc[clusters[2]]
         merged_df = pd.concat([cluster_1_df, cluster_2_df, cluster_3_df])
         merged_df.to_csv(
-            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Merged_Clusters.csv",
+            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Merged Clusters.csv",
             index=False)
-        cluster_1_df.to_csv("/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Cluster 1.csv",
+        cluster_1_df.to_csv(
+            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Cluster 1.csv",
             index=False)
         cluster_2_df.to_csv(
-            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Cluster 2.csv",
+            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Cluster 2.csv",
             index=False)
         cluster_3_df.to_csv(
-            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Cluster 3.csv",
+            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Cluster 3.csv",
             index=False)
