@@ -24,6 +24,8 @@ Step 3. data cleaning: create a condition to select useful hashtags, only Englis
 
 Step 4: run Topic modelling
 
+Step 5: Content analysis, Network analysis, Buzz graph??
+
 """
 import os
 from pathlib import Path  # pathlib: module, Path: class. Checking if a path exist
@@ -38,6 +40,7 @@ import string
 from itertools import chain  # To merge multiple lists into a single list
 from langdetect import detect, LangDetectException
 import warnings
+import matplotlib.pyplot as plt
 
 
 def remove_emojis(text):
@@ -127,8 +130,6 @@ def extract_captions_urls(posts):
     #         id_var.append(id)
 
 
-
-
 def dropdata(df: pd.DataFrame,
              column_drop: Optional[List[str]] = None,
              keywords_drop: Optional[List[str]] = None,
@@ -180,7 +181,7 @@ def organised_data(df: pd.DataFrame,
 if __name__ == '__main__':
     df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance')
     # Print the captions and URLs for easy reference
-    df['Caption'], df['URL'], df['ID']= zip(*df['latestPosts'].apply(extract_captions_urls))
+    df['Caption'], df['URL'], df['ID'] = zip(*df['latestPosts'].apply(extract_captions_urls))
 
     column_drop = ['topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
 
@@ -272,9 +273,9 @@ if __name__ == '__main__':
                      "bacterialinfectionsandsethrogen"]]
 
     for keywords_drop in keyword_sets:
-        save_path = Path( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance 01 Jan 2017 - 01 July 2023_hashtags.csv', index=False)
+        # save_path = Path( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance 01 Jan 2017 - 01 July 2023_hashtags.csv', index=False)
 
-        droped_df = dropdata(df, column_drop=column_drop, keywords_drop=keywords_drop,save_path=save_path)
+        droped_df = dropdata(df, column_drop=column_drop, keywords_drop=keywords_drop)
         new_df = organised_data(droped_df)
 
 
@@ -322,13 +323,13 @@ def contains_non_english(text):
 # indices_to_drop = new_df[new_df['Caption'].apply(contains_non_english)].index
 indices_to_drop = new_df[new_df.apply(lambda row: contains_non_english(row['Caption']), axis=1)].index
 
-new_df.loc[indices_to_drop, ['Caption', 'URL','ID']] = None
-new_df.dropna(subset=['Caption', 'URL','ID'], how='all', inplace=True)
+new_df.loc[indices_to_drop, ['Caption', 'URL', 'ID']] = None
+new_df.dropna(subset=['Caption', 'URL', 'ID'], how='all', inplace=True)
 # # Merge cells for 'name' and 'url'
 # new_df['name'] = new_df['name'].mask(new_df['name'].duplicated(), '')
 # new_df['url'] = new_df['url'].mask(new_df['url'].duplicated(), '')
 
-new_df.to_csv( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance 01 Jan 2017 - 01 July 2023_specific hashtags.csv', index=False)
+# new_df.to_csv( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance 01 Jan 2017 - 01 July 2023_specific hashtags.csv', index=False)
 new_df.reset_index(drop=True, inplace=True)
 
 """"Topic modelling"""
@@ -457,15 +458,62 @@ for doc_index, doc_topics in enumerate(topic_distribution):
         cluster_2_df = new_df.loc[clusters[1]]
         cluster_3_df = new_df.loc[clusters[2]]
         merged_df = pd.concat([cluster_1_df, cluster_2_df, cluster_3_df])
-        merged_df.to_csv(
-            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Merged Clusters.csv",
-            index=False)
-        cluster_1_df.to_csv(
-            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Cluster 1.csv",
-            index=False)
-        cluster_2_df.to_csv(
-            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Cluster 2.csv",
-            index=False)
-        cluster_3_df.to_csv(
-            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Cluster 3.csv",
-            index=False)
+        # merged_df.to_csv(
+        #     "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Merged Clusters.csv",
+        #     index=False)
+        # cluster_1_df.to_csv(
+        #     "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Cluster 1.csv",
+        #     index=False)
+        # cluster_2_df.to_csv(
+        #     "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Cluster 2.csv",
+        #     index=False)
+        # cluster_3_df.to_csv(
+        #     "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance_Cluster 3.csv",
+        #     index=False)
+
+
+"""Network analysis"""
+import networkx as nx
+
+# 創建一個空的無向圖形
+G = nx.Graph()
+
+# 將hashtags添加為節點
+hashtags_list = cluster_3_df['Caption'].apply(lambda caption: [tag.lower() for tag in caption.split() if tag.startswith('#')])
+for hashtags in hashtags_list:
+    for tag in hashtags:
+        G.add_node(tag)
+
+
+# 創建共用用戶的邊
+for post_id, hashtags in zip(cluster_3_df['ID'], hashtags_list):
+    for user in cluster_3_df[cluster_3_df['ID'] == post_id]:
+        for tag in hashtags:
+            if G.has_edge(user, tag):
+                G[user][tag]['weight'] += 1
+                G[user][tag]['posts'].append(post_id)
+            else:
+                G.add_edge(user, tag, weight=1, posts=[post_id])
+
+# 獲取邊的權重作為buzz graph中邊的權重
+edge_weights = nx.get_edge_attributes(G, 'weight')
+
+# 只保留邊權重大於等於一的邊
+filtered_edges = {edge: weight for edge, weight in edge_weights.items() if weight >= 1}
+
+# 創建buzz graph，這裡使用Graph類型，你也可以使用DiGraph類型來創建有向buzz graph
+buzz_graph = nx.Graph()
+buzz_graph.add_edges_from(filtered_edges.keys())
+
+# 你可以通過獲取節點和邊屬性來進一步處理buzz graph
+# 例如，獲取節點度數（即節點的連接數）
+node_degrees = buzz_graph.degree()
+
+# 你也可以使用網絡分析庫的可視化功能來可視化buzz graph
+
+
+# build buzz graph
+pos = nx.spring_layout(buzz_graph, k=0.15, iterations=20)
+nx.draw(buzz_graph, pos, with_labels=True, node_size=100, font_size=8, font_weight='bold', node_color='skyblue',
+        edge_color='gray', width=0.5, alpha=0.8)
+plt.show()
