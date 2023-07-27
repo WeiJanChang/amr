@@ -167,7 +167,7 @@ def organised_data(df: pd.DataFrame,
 
 
 if __name__ == '__main__':
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotics')
+    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing')
     # Print the captions and URLs for easy reference
     df['Caption'], df['URL'] = zip(*df['latestPosts'].apply(extract_captions_urls))
 
@@ -261,8 +261,7 @@ if __name__ == '__main__':
                      "bacterialinfectionsandsethrogen"]]
 
     for keywords_drop in keyword_sets:
-        # save_path = Path(
-        #     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial stewardship/Antimicrobial stewardship 01 Jan 2017 - 01 July 2023_hashtags.csv')
+        # save_path = Path( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Antibiotic prescribing 01 Jan 2017 - 01 July 2023_hashtags.csv')
 
         droped_df = dropdata(df, column_drop=column_drop, keywords_drop=keywords_drop)
         new_df = organised_data(droped_df)
@@ -314,13 +313,12 @@ indices_to_drop = new_df[new_df.apply(lambda row: contains_non_english(row['Capt
 
 new_df.loc[indices_to_drop, ['Caption', 'URL']] = None
 new_df.dropna(subset=['Caption', 'URL'], how='all', inplace=True)
-# Merge cells for 'name' and 'url'
-new_df['name'] = new_df['name'].mask(new_df['name'].duplicated(), '')
-new_df['url'] = new_df['url'].mask(new_df['url'].duplicated(), '')
+# # Merge cells for 'name' and 'url'
+# new_df['name'] = new_df['name'].mask(new_df['name'].duplicated(), '')
+# new_df['url'] = new_df['url'].mask(new_df['url'].duplicated(), '')
 
-# new_df.to_csv(
-#     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial stewardship/Antimicrobial stewardship 01 Jan 2017 - 01 July 2023_specific hashtags.csv',
-#     index=False)
+# new_df.to_csv( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Antibiotic prescribing 01 Jan 2017 - 01 July 2023_specific hashtags.csv', index=False)
+new_df.reset_index(drop=True, inplace=True)
 
 print("Data successfully processed and saved to modified csv file.")
 
@@ -335,12 +333,12 @@ from nltk.stem.wordnet import WordNetLemmatizer
 """Step 1: clean the data"""
 
 stop = set(stopwords.words('english'))
-"""Examples of stopwords include "the," "a," "an," "in," "on," etc. The stopwords module from the nltk library 
+"""Examples of stopwords include "the," "a," "an," "in," "on," etc. The stopwords module from the nltk library
 provides a list of common stopwords in different languages, and here we are using the ones for English"""
 exclude = set(string.punctuation)
 lemma = WordNetLemmatizer()
-"""For example, the lemma of the words "running," "runs," and "ran" is "run." The WordNetLemmatizer class uses the 
-WordNet lexical database to perform lemmatization. This helps reduce inflected words to a common base form, 
+"""For example, the lemma of the words "running," "runs," and "ran" is "run." The WordNetLemmatizer class uses the
+WordNet lexical database to perform lemmatization. This helps reduce inflected words to a common base form,
 which can be useful for text analysis and processing tasks"""
 
 
@@ -376,32 +374,32 @@ doc_term_matrix = [dictionary.doc2bow(doc) for doc in new_df['Caption_cleaned']]
 
 """Step 4: Instantiate LDA model"""
 lda = gensim.models.ldamodel.LdaModel
-"""This algorithm assumes that each document in the text is composed of different proportions of topics, 
-and each topic is composed of different proportions of words. LDA finds these latent topics and their word 
+"""This algorithm assumes that each document in the text is composed of different proportions of topics,
+and each topic is composed of different proportions of words. LDA finds these latent topics and their word
 combinations through an iterative process"""
 
 """Step 5: print the topics identified by LDA model"""
 # can't overlapping the circle (see on the web)--> If overlapped--> not a good model fit --> shorter the num_topics
 num_topics = 3  # num_topics: The number of topics to be identified by the LDA model
-ldamodel = lda(doc_term_matrix, num_topics=num_topics, id2word=dictionary, passes=50, minimum_probability=0.1,
+ldamodel = lda(doc_term_matrix, num_topics=num_topics, id2word=dictionary, passes=50, minimum_probability=0.7825,
                random_state=50)
-"""id2word: The dictionary created in Step 2, which maps word IDs to words. 
-passes: the number of times the algorithm goes through all the documents in the dataset during the training process. 
-Each pass allows the model to learn and update its understanding of the data, potentially improving the quality of the 
+"""id2word: The dictionary created in Step 2, which maps word IDs to words.
+passes: the number of times the algorithm goes through all the documents in the dataset during the training process.
+Each pass allows the model to learn and update its understanding of the data, potentially improving the quality of the
 identified topics.
-minimum_probability:  The minimum probability value required for a word to be considered in a topic. 
-In this case, it's set to 0, meaning all words will be included in the topics regardless of 
-their probability. If set to a higher value (e.g., 0.01), the model will only include words with a probability 
+minimum_probability:  The minimum probability value required for a word to be considered in a topic.
+In this case, it's set to 0, meaning all words will be included in the topics regardless of
+their probability. If set to a higher value (e.g., 0.01), the model will only include words with a probability
 greater than or equal to the specified value.
 random_state: """
-print(ldamodel.print_topics(num_topics=num_topics))
+# print(ldamodel.print_topics(num_topics=num_topics))
 
 """Step 6:Visualize the LDA model results"""
-# warnings.simplefilter(action='ignore', category=FutureWarning)
-# lda_display = pyLDAvis.gensim.prepare(ldamodel, doc_term_matrix, dictionary, sort_topics=False, mds='mmds')
-# # save to HTML that can open on web
-# pyLDAvis.save_html(lda_display, 'LDA_Visualization.html')
-# webbrowser.open('file://' + os.path.realpath('LDA_Visualization.html'))
+warnings.simplefilter(action='ignore', category=FutureWarning)
+lda_display = pyLDAvis.gensim.prepare(ldamodel, doc_term_matrix, dictionary, sort_topics=False, mds='mmds')
+# save to HTML that can open on web
+pyLDAvis.save_html(lda_display, 'LDA_Visualization.html')
+webbrowser.open('file://' + os.path.realpath('LDA_Visualization.html'))
 
 """Step 7: Find which articles were marked in which cluster"""
 # Assigns the topics to the documents in corpus
@@ -412,13 +410,13 @@ topic_distribution = ldamodel[doc_term_matrix]  # contains the topic distributio
 scores = list(chain(*[[score for topic_id, score in topic] for topic in [doc for doc in topic_distribution]]))
 # This line extracts the probability scores for all topics for each document and stores them in the scores list
 threshold = sum(scores) / len(scores)
-"""The threshold is calculated as the average of all probability scores. It's used as a threshold to determine which 
-articles belong to which cluster. Articles with a probability score greater than this threshold are considered to 
+"""The threshold is calculated as the average of all probability scores. It's used as a threshold to determine which
+articles belong to which cluster. Articles with a probability score greater than this threshold are considered to
 belong to a cluster"""
-print(threshold)
-"""After computing the threshold, you can use it to filter out topics that have probability scores below this 
-threshold. Topics with probabilities lower than the threshold are considered less significant or relevant, 
-and you may choose to exclude them from further analysis or visualization. This threshold can help you focus on the 
+# print(threshold)
+"""After computing the threshold, you can use it to filter out topics that have probability scores below this
+threshold. Topics with probabilities lower than the threshold are considered less significant or relevant,
+and you may choose to exclude them from further analysis or visualization. This threshold can help you focus on the
 most important and representative topics in your topic modeling results."""
 
 """
@@ -436,15 +434,28 @@ Each Threshold
 11. Antibiotic prescribing: 0.7825
 """
 
-# cluster1 = [j for i, j in zip(lda_corpus, new_df.index) if i[0][1] > threshold]
-# cluster2 = [j for i, j in zip(lda_corpus, new_df.index) if i[1][1] > threshold]
-# cluster3 = [j for i, j in zip(lda_corpus, new_df.index) if i[2][1] > threshold]
-#
-# print(new_df.iloc[cluster1])
-# clusterdf = new_df.iloc[cluster3]
-# new_df.to_csv(
-#     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial stewardship/Antimicrobial stewardship 01 Jan 2017 - 01 July 2023_ selected words.csv',
-#     index=False)
-# clusterdf.to_csv(
-#     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial stewardship/Antimicrobial stewardship 01 Jan 2017 - 01 July 2023_topic texts cluster test.csv',
-#     index=False)
+# Create a list to store the document IDs for each cluster
+clusters = [[] for _ in range(num_topics)]
+
+# Assign each document to its corresponding cluster based on the dominant topic
+for doc_index, doc_topics in enumerate(topic_distribution):
+    if doc_topics:  # Check if doc_topics is not empty
+        dominant_topic = max(doc_topics, key=lambda x: x[1])  # Find the dominant topic and its probability
+        if dominant_topic[1] > threshold:  # Check if the probability of the dominant topic is above the threshold
+            cluster_index = dominant_topic[0]  # Get the index of the dominant topic
+            clusters[cluster_index].append(doc_index)  # Add the document index to the corresponding cluster
+        cluster_1_df = new_df.loc[clusters[0]]
+        cluster_2_df = new_df.loc[clusters[1]]
+        cluster_3_df = new_df.loc[clusters[2]]
+        merged_df = pd.concat([cluster_1_df, cluster_2_df, cluster_3_df])
+        merged_df.to_csv(
+            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Merged_Clusters.csv",
+            index=False)
+        cluster_1_df.to_csv("/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Cluster 1.csv",
+            index=False)
+        cluster_2_df.to_csv(
+            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Cluster 2.csv",
+            index=False)
+        cluster_3_df.to_csv(
+            "/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antibiotic prescribing/Cluster 3.csv",
+            index=False)
