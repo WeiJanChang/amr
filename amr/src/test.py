@@ -21,11 +21,6 @@ Step 1. read 11 hashtags files in Json (remove emoji first) and transfer to CSV 
 Step 2. Selected Captions and Urls and drop usefulness headers
 
 Step 3. data cleaning: create a condition to select useful hashtags, only English
-
-Step 4: run Topic modelling
-
-Step 5: Content analysis, Network analysis, Buzz graph??
-
 """
 import os
 from pathlib import Path  # pathlib: module, Path: class. Checking if a path exist
@@ -35,13 +30,7 @@ from typing import Union
 import json
 import re
 import demoji
-import webbrowser
-import string
-from itertools import chain  # To merge multiple lists into a single list
 from langdetect import detect, LangDetectException
-import warnings
-import matplotlib.pyplot as plt
-
 
 def remove_emojis(text):
     """

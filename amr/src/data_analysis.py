@@ -1,3 +1,11 @@
+"""
+Pipeline
+
+Step 1: run Topic modelling
+
+Step 2: Content analysis, Network analysis, Buzz graph??
+"""
+
 """"Topic modelling"""
 import string
 import gensim  # the library for Topic modelling
