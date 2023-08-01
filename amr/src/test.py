@@ -189,9 +189,11 @@ if __name__ == '__main__':
                    'country_code', 'geo.type', 'geo.bbox', 'geo.coordinates.type', 'geo.coordinates.coordinates']
 
     save_path = '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Twitter data/ABR/ABR_modified IE 01-17 to 01-23.csv'
-    dropdata(x_df, column_drop=column_drop, save_path=save_path)
-
+    x_df = dropdata(x_df, column_drop=column_drop, save_path=save_path)
+print(x_df)
 """Instagram"""
+
+
 #     df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance')
 #     # Print the captions and URLs for easy reference
 #     df['Caption'], df['URL'], df['ID'] = zip(*df['latestPosts'].apply(extract_captions_urls))
@@ -291,47 +293,48 @@ if __name__ == '__main__':
 #         droped_df = dropdata(df, column_drop=column_drop, keywords_drop=keywords_drop)
 #         new_df = organised_data(droped_df)
 #
-#
-# # remove non-English languages
-# def contains_non_english(text):
-#     pattern = r'[^\x00-\x7F]'
-#     contains_non_ascii = bool(re.search(pattern, text))
-#
-#     try:
-#         language = detect(text)
-#     except LangDetectException:
-#         return contains_non_ascii
-#
-#     languages = {
-#         'Spanish': 'es',
-#         'French': 'fr',
-#         'Portuguese': 'pt',
-#         'Italian': 'it',
-#         'German': 'de',
-#         'Dutch': 'nl',
-#         'Swedish': 'sv',
-#         'Danish': 'da',
-#         'Norwegian': 'no',
-#         'Finnish': 'fi',
-#         'Polish': 'pl',
-#         'Czech': 'cs',
-#         'Slovak': 'sk',
-#         'Slovenian': 'sl',
-#         'Hungarian': 'hu',
-#         'Romanian': 'ro',
-#         'Croatian': 'hr',
-#         'Serbian': 'sr',
-#         'Bulgarian': 'bg',
-#         'Greek': 'el',
-#         'Turkish': 'tr',
-#         'Estonian': 'et',
-#         'Latvian': 'lv',
-#         'Lithuanian': 'lt'
-#     }
-#
-#     is_not_english = language != 'en' and language not in languages.values()
-#     return contains_non_ascii or is_not_english
-#
+
+# remove non-English languages
+def contains_non_english(text):
+    pattern = r'[^\x00-\x7F]'
+    contains_non_ascii = bool(re.search(pattern, text))
+
+    try:
+        language = detect(text)
+    except LangDetectException:
+        return contains_non_ascii
+
+    languages = {
+        'Spanish': 'es',
+        'French': 'fr',
+        'Portuguese': 'pt',
+        'Italian': 'it',
+        'German': 'de',
+        'Dutch': 'nl',
+        'Swedish': 'sv',
+        'Danish': 'da',
+        'Norwegian': 'no',
+        'Finnish': 'fi',
+        'Polish': 'pl',
+        'Czech': 'cs',
+        'Slovak': 'sk',
+        'Slovenian': 'sl',
+        'Hungarian': 'hu',
+        'Romanian': 'ro',
+        'Croatian': 'hr',
+        'Serbian': 'sr',
+        'Bulgarian': 'bg',
+        'Greek': 'el',
+        'Turkish': 'tr',
+        'Estonian': 'et',
+        'Latvian': 'lv',
+        'Lithuanian': 'lt'
+    }
+
+    is_not_english = language != 'en' and language not in languages.values()
+    return contains_non_ascii or is_not_english
+
+
 #
 # # indices_to_drop = new_df[new_df['Caption'].apply(contains_non_english)].index
 # indices_to_drop = new_df[new_df.apply(lambda row: contains_non_english(row['Caption']), axis=1)].index
@@ -344,3 +347,7 @@ if __name__ == '__main__':
 #
 # # new_df.to_csv( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance 01 Jan 2017 - 01 July 2023_specific hashtags.csv', index=False)
 # new_df.reset_index(drop=True, inplace=True)
+
+indices_to_drop_xdf = x_df[x_df['text'].apply(contains_non_english)].index
+indices_to_drop_xdf = x_df[x_df.apply(lambda row: contains_non_english(row['text']), axis=1)].index
+print(x_df)
