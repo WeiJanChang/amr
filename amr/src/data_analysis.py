@@ -41,9 +41,6 @@ df10 = pd.read_csv(
 df11 = pd.read_csv(
     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Drug resistant/Drug resistant 01 Jan 2017 - 01 July 2023_specific hashtags.csv')
 merged_df = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11])
-
-merged_df.to_csv('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/all_merged_file.csv',
-                 index=False)
 new_df = merged_df
 
 print(new_df['Caption'].dtype)
@@ -51,8 +48,8 @@ print(new_df['Caption'].apply(type).unique())
 print(new_df['Caption'].apply(type).value_counts())
 new_df['Caption'] = new_df['Caption'].astype(str)
 new_df['Caption'] = new_df['Caption'].str.lower()
-new_df.to_csv('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/all_merged_file_new.csv',
-                 index=False)
+#new_df.to_csv('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/all_Instagram_data(non-English excluded).csv',
+#                 index=False)
 
 
 """"Topic modelling"""

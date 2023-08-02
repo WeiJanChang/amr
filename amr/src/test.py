@@ -171,26 +171,46 @@ def organised_data(df: pd.DataFrame,
 if __name__ == '__main__':
     """Twitter"""
     x_df = pd.read_csv(
-        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Twitter data/ABR/ABR IE 01-17 to 01-23.csv')
+        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Twitter data/all_Twitter_data IE (non-English excluded).csv')
     # print(x_df.columns)
-    column_drop = ['attachments.poll_ids', 'attachments.media_keys', 'context_annotations', 'entities.annotations',
+    column_drop = ['author_id',
+                   'attachments.poll_ids',
+                   'attachments.media_keys',
+                   'context_annotations',
+                   'entities.annotations',
                    'entities.cashtags',
-                   'entities.hashtags', 'entities.mentions', 'entities.urls', 'source', 'lang', 'reply_settings',
-                   'withheld.copyright', 'withheld.country_codes', 'non_public_metrics.impression_count',
-                   'non_public_metrics.url_link_clicks', 'non_public_metrics.user_profile_clicks',
+                   'entities.hashtags',
+                   'entities.mentions',
+                   'entities.urls', 'source', 'lang', 'reply_settings',
+                   'withheld.copyright', 'withheld.country_codes','created_at','conversation_id',
+                   'geo.place_id','geo.coordinates.type','geo.coordinates.coordinates','in_reply_to_user_id',
+                   'referenced_tweets',
+                   'non_public_metrics.impression_count',
+                   'non_public_metrics.url_link_clicks',
+                   'non_public_metrics.user_profile_clicks',
                    'organic_metrics.impression_count', 'organic_metrics.like_count', 'organic_metrics.reply_count',
                    'organic_metrics.retweet_count', 'organic_metrics.url_link_clicks',
                    'organic_metrics.user_profile_clicks', 'promoted_metrics.impression_count',
-                   'promoted_metrics.like_count', 'promoted_metrics.reply_count', 'promoted_metrics.retweet_count',
-                   'promoted_metrics.url_link_clicks', 'promoted_metrics.user_profile_clicks', 'location',
-                   'pinned_tweet_id', 'profile_image_url', 'protected', 'url', 'entities.url.urls',
+                   'promoted_metrics.like_count',
+                   'promoted_metrics.reply_count', 'promoted_metrics.retweet_count',
+                   'promoted_metrics.url_link_clicks',
+                   'promoted_metrics.user_profile_clicks','id.1',
+                   'location',
+                   'pinned_tweet_id', 'profile_image_url',
+                   'protected', 'url','description','verified','created_at.1',
+                   'entities.url.urls',
                    'entities.description.urls', 'entities.description.hashtags', 'entities.description.mentions',
-                   'entities.description.cashtags', 'withheld', 'contained_within', 'geo.properties', 'place_type',
-                   'country_code', 'geo.type', 'geo.bbox', 'geo.coordinates.type', 'geo.coordinates.coordinates']
+                   'entities.description.cashtags',
+                   'withheld','full_name','id.2','country',
+                   'contained_within',
+                   'geo.properties',
+                   'place_type',
+                   'name.1',
+                   'country_code',
+                   'geo.type', 'geo.bbox', 'geo.coordinates.type', 'geo.coordinates.coordinates']
 
-    save_path = '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Twitter data/ABR/ABR_modified IE 01-17 to 01-23.csv'
+    save_path = '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Twitter data/all_Twitter_data IE (non-English excluded)_new.csv'
     x_df = dropdata(x_df, column_drop=column_drop, save_path=save_path)
-print(x_df)
 """Instagram"""
 
 
