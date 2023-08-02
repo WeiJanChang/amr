@@ -1,8 +1,10 @@
+import pandas as pd
+
 """
 merge Twitter data (IE, GB, and both)
 
 """
-import pandas as pd
+
 #
 # df1 = pd.read_csv(
 #     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Twitter data/Superbugs/Superbugs GB 01-17 to 01-23.csv')
@@ -32,25 +34,23 @@ import pandas as pd
 #                 index=False)
 
 
-twitter_IE = pd.read_csv('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Twitter data/all_Twitter_data IE (non-English excluded)_new.csv', dtype=str)
-twitter_GB =  pd.read_csv('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Twitter data/all_Twitter_data GB (non-English excluded)_new.csv', dtype=str)
-
-merged_twitter = pd.concat([twitter_GB,twitter_IE])
+# twitter_IE = pd.read_csv('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Twitter data/all_Twitter_data IE (non-English excluded)_new.csv', dtype=str)
+# twitter_GB =  pd.read_csv('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Twitter data/all_Twitter_data GB (non-English excluded)_new.csv', dtype=str)
+#
+# merged_twitter = pd.concat([twitter_GB,twitter_IE])
 # merged_twitter.to_csv('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Twitter data/all_Twitter_data.csv',
 #                 index=False)
 
 
 all_ig = pd.read_csv('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/all_Instagram_data(non-English excluded).csv')
-num_rows = merged_twitter.shape[0]
-num_cols = merged_twitter.shape[1]
+# num_rows = merged_twitter.shape[0]
+# num_cols = merged_twitter.shape[1]
 
-print("row：", num_rows)
-print("col：", num_cols)
-print("row and col：", merged_twitter.shape)
+# print("row：", num_rows)
+# print("col：", num_cols)
+# print("row and col：", merged_twitter.shape)
+#
+# print(all_ig.columns)
+# print(merged_twitter.columns)
 
 
-print(all_ig.columns)
-print(merged_twitter.columns)
-
-
-# id --> ID; text -->Caption
