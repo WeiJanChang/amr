@@ -8,7 +8,7 @@ import requests
 
 all_ig = pd.read_csv(
     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/all_Instagram_data(non-English excluded).csv')
-
+"""
 
 # can't download complete images
 def download_instagram_image(post_url, name, ID, save_path):
@@ -60,8 +60,14 @@ def download_instagram_image(post_url, name, ID, save_path):
 
         post = instaloader.Post.from_shortcode(loader.context, post_url.split('/')[-2])
 
-        loader.download_post(post, target=save_path)
-        print(f"Images {name}_{ID} saved as {save_path}")
+        # Generate the filename using the provided name and ID
+        image_name = f"{name}_{ID}.jpg"
+
+        # Combine the save_path and image_name to get the full file path
+        full_file_path = os.path.join(save_path, image_name)
+
+        loader.download_post(post, target=full_file_path)
+        print(f"Image {name}_{ID} saved as {full_file_path}")
     except instaloader.exceptions.InvalidArgumentException:
         print("無效的帖子URL")
     except instaloader.exceptions.ConnectionException as e:
@@ -72,6 +78,8 @@ def download_instagram_image(post_url, name, ID, save_path):
         print("Need authorized")
     except Exception as e:
         print("download error:", e)
+
+
 
 # save path
 output_folder = 'Instagram images'
@@ -84,4 +92,4 @@ for index, row in all_ig.iterrows():
     image_path = output_folder
     download_instagram_image(instagram_url, row['name'], row['ID'], image_path)
 
-"""
+
