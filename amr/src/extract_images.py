@@ -78,7 +78,6 @@ output_folder = 'Instagram images'
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
-# 使用for迴圈遍歷每一行
 for index, row in all_ig.iterrows():
     instagram_url = row['URL']
     image_name = f"{row['name']}_{row['ID']}.jpg"
