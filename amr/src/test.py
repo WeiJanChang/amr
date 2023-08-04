@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
     # Instagram
 
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance')
+    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR')
     # Print the captions and URLs for easy reference
     df['Caption'], df['URL'], df['ID'], df['LikesCount'] = zip(*df['latestPosts'].apply(extract_captions_urls))
 
@@ -254,7 +254,7 @@ if __name__ == '__main__':
 
     for keywords_drop in keyword_sets:
         save_path = Path(
-            '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance 01 Jan 2017 - 01 July 2023_hashtags.csv',
+            '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR/AMR 01 Jan 2017 - 01 July 2023_hashtags.csv',
             index=False)
 
         droped_df = dropdata(df, column_drop=column_drop, keywords_drop=keywords_drop, save_path=save_path)
@@ -308,5 +308,5 @@ indices_to_drop = new_df[new_df.apply(lambda row: contains_non_english(row['Capt
 new_df.loc[indices_to_drop, ['Caption', 'URL', 'ID']] = None
 new_df.dropna(subset=['Caption', 'URL', 'ID'], how='all', inplace=True)
 
-new_df.to_csv( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Antimicrobial resistance/Antimicrobial resistance 01 Jan 2017 - 01 July 2023_specific hashtags.csv', index=False)
+new_df.to_csv( '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR/AMR 01 Jan 2017 - 01 July 2023_specific hashtags (non-English excluded).csv', index=False)
 new_df.reset_index(drop=True, inplace=True)
