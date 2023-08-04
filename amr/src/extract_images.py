@@ -6,54 +6,22 @@ from PIL import Image
 import instaloader
 import requests
 
-all_ig = pd.read_csv(
+from pathlib import Path
+from typing import Union, Tuple, List
+
+import cv2
+import numpy as np
+import pytesseract
+from pygments.formatters import img
+import pytesseract
+
+
+instagram_df = pd.read_csv(
     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/all_Instagram_data(non-English excluded).csv')
-"""
-
-# can't download complete images
-def download_instagram_image(post_url, name, ID, save_path):
-    try:
-        response = requests.get(post_url)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-        # search URL
-        image_url = soup.find('meta', property='og:image')['content']
-
-        # download images
-        image_response = requests.get(image_url)
-        image_response.raise_for_status()
-        with open(save_path, 'wb') as f:
-            f.write(image_response.content)
-
-        print(f"Images {name}_{ID} saved as {save_path}")
-    except requests.exceptions.HTTPError as errh:
-        print("Http Error:", errh)
-    except requests.exceptions.ConnectionError as errc:
-        print("Error Connecting:", errc)
-    except requests.exceptions.Timeout as errt:
-        print("Timeout Error:", errt)
-    except requests.exceptions.RequestException as err:
-        print("OOps: Something Else", err)
-    except (IOError, ValueError, OSError) as err:
-        print("images error:", err)
-    except TypeError:
-        print("can't find correct URL")
 
 
-# save path
-output_folder = 'Instagram images'
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
+# Step 1 Download images from all_Instagram_data(non-English excluded).csv
 
-for index, row in all_ig.iterrows():
-    instagram_url = row['URL']
-    image_name = f"{row['name']}_{row['ID']}.jpg"
-    image_path = os.path.join(output_folder, image_name)
-    download_instagram_image(instagram_url, row['name'], row['ID'], image_path)
-
-"""
-#NEED API
 def download_instagram_image(post_url, name, ID, save_path):
     try:
         loader = instaloader.Instaloader()
@@ -69,7 +37,7 @@ def download_instagram_image(post_url, name, ID, save_path):
         loader.download_post(post, target=full_file_path)
         print(f"Image {name}_{ID} saved as {full_file_path}")
     except instaloader.exceptions.InvalidArgumentException:
-        print("無效的帖子URL")
+        print("can't open URL")
     except instaloader.exceptions.ConnectionException as e:
         print("connect error:", e)
     except instaloader.exceptions.ProfileNotExistsException:
@@ -80,16 +48,70 @@ def download_instagram_image(post_url, name, ID, save_path):
         print("download error:", e)
 
 
+def main_instagram():
+    # save path
+    output_folder = 'Instagram images'
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
 
-# save path
-output_folder = 'Instagram images'
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
-
-for index, row in all_ig.iterrows():
-    instagram_url = row['URL']
-    image_name = f"{row['name']}_{row['ID']}.jpg"
-    image_path = output_folder
-    download_instagram_image(instagram_url, row['name'], row['ID'], image_path)
+    for index, row in instagram_df.iterrows():
+        instagram_url = row['URL']
+        image_name = f"{row['name']}_{row['ID']}.jpg"
+        image_path = output_folder
+        download_instagram_image(instagram_url, row['name'], row['ID'], image_path)
 
 
+
+def extract_text(file: Union[Path, str],
+                 verify_plot=True,
+                 **kwargs) -> Tuple[bool, str]:
+    """
+    extract text from image
+
+    :param file:
+    :param verify_plot: plot original & preprocessed images.
+    :param kwargs:
+    :return:
+    """
+
+    img = cv2.imread(str(file))[..., ::-1]
+    img_proc = _preprocess_image(img)
+    extract = pytesseract.image_to_string(img_proc, **kwargs)
+    has_text = True if len(extract) else False
+    print(f'EXTRACT: {extract}')
+    if verify_plot:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots(1, 2)
+        ax[0].imshow(img)
+        ax[1].imshow(img_proc)
+        plt.title(extract)
+        plt.show()
+
+
+    return has_text, extract
+
+
+def _preprocess_image(image: np.ndarray) -> np.ndarray:
+    img = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    img = cv2.adaptiveThreshold(img, 100,
+                                cv2.ADAPTIVE_THRESH_MEAN_C,
+                                cv2.THRESH_BINARY,
+                                15, 16)
+
+    return img
+
+
+if __name__ == '__main__':
+# run .jpg in files and return img
+# todo: how to save them into csv and don't return each img. need run them all
+
+    directory = '/Users/wei/Library/CloudStorage/GoogleDrive-wei-jan.chang@ucdconnect.ie/.shortcut-targets-by-id/10hvZ9DULDsQxq93eg2SZ3tFyFCP37DnA/Wei-Jan/Image,Video with texts_Instagram 2/selected'
+    jpg_files = list(Path(directory).glob('*.jpg'))
+
+    results = []
+    for file_path in jpg_files:
+        has_text, extract = extract_text(file_path, config="--psm 6")
+        results.append({'Image_Path': str(file_path), 'Extracted_Text': extract})
+
+    df = pd.DataFrame(results)
+    df.to_csv('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/image_extracted_text.csv', index=False)
