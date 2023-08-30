@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Union, Tuple, List
 import cv2
 import numpy as np
-import pandas as pd
 import pytesseract
 
 
