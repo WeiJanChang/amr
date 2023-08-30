@@ -130,10 +130,10 @@ def get_lastest_post(j: DOWNLOAD_JSON) -> list[PostsDict]:
     :return:
     """
     new_list = []
-    for post in j:  # type: PostsDict
+    for post in j:  # type: DownLoadDict
         if len(post['latestPosts']) != 0:
             new_list.append(post['latestPosts'])
-    return new_list
+    return new_list # todo: xx list[list]
 
 
 def load(file: Path) -> list[PostsDict]:
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     json_list =[]
     def open_json_files(path):
 
-        json_file_names = [filename for filename in os.listdir(path) if filename.endswith('.json')]
+        json_file_names = [filename for filename in os.listdir(path) if filename.endswith('.json')] # type: list[str]
         for json_file in json_file_names:  #type: str
             with open(os.path.join(path, json_file)):
                 json_list.append(json_file)
