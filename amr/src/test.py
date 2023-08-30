@@ -24,7 +24,7 @@ Step 3. data cleaning: create a condition to select useful hashtags, only Englis
 """
 
 from pathlib import Path  # pathlib: module, Path: class. Checking if a path exist
-from typing import Optional, List, Dict, Tuple  # typing: support for type hint
+from typing import Optional, List  # typing: support for type hint
 import pandas as pd
 from typing import Union
 import json
@@ -36,7 +36,7 @@ from langdetect import detect, LangDetectException
 def remove_emojis(text):
     """
     :param text: all text in files
-    :return: modified text with any emojis removed
+    :return: modified text with any emojis removed (replaced emoji to "")
     """
     return demoji.replace(text, "")
 
@@ -73,35 +73,37 @@ def load_json(p: Union[Path, str]) -> pd.DataFrame:
         with p.open(encoding='utf-8') as file:
             json_data = json.load(file)
             # remove emoji
-            json_data_without_emojis = remove_emojis_from_json(json_data)
-            return pd.DataFrame(json_data_without_emojis)
+            json_emojis_removed = remove_emojis_from_json(json_data)
+            return pd.DataFrame(json_emojis_removed)
     else:
-        f = list(p.glob('*.json'))
+        f = list(p.glob('*.json'))  # glob is used to math file path
         if len(f) == 0:
             raise FileNotFoundError(f'no json file under the {p}')
         elif len(f) == 1:
             with f[0].open(encoding='utf-8') as file:
                 json_data = json.load(file)
                 # remove emojis
-                json_data_without_emojis = remove_emojis_from_json(json_data)
-                return pd.DataFrame(json_data_without_emojis)
+                json_emojis_removed = remove_emojis_from_json(json_data)
+                return pd.DataFrame(json_emojis_removed)
         else:
             raise RuntimeError(f'multiple json files under the {p}')
 
 
-def extract_captions_urls(posts):
+def extract_captions_urls(posts: list):
     """
-    Extract captions and URLs from a list of posts. :param posts: A list of posts, where each post is represented as
-    a dictionary. Each post dictionary should contain information about the post, such as 'caption' for the caption
-    text, 'url' for the post URL, 'id' and like counts of the post. :return: - A list of caption/URL/ID/like counts
-    extracted from the posts. Each caption/URL/ID/like counts are preceded by its corresponding post index.
+    Extract captions and URLs from a list of posts.
 
+    :param posts: A list of posts, where each post is represented as a dictionary.
+    Each post dictionary should contain information about the post, such as 'caption' for the caption
+    text, 'url' for the post URL, 'id' and like counts of the post.
+
+    :return: A list of caption/URL/ID/like counts extracted from the posts.
+    Each caption/URL/ID/like counts are preceded by its corresponding post index.
     """
-
-    captions = [post.get('caption', '') for post in posts]
-    urls = [post.get('url', '') for post in posts]
-    id_var = [post.get('id', '') for post in posts]
-    likes_count = [post.get('likesCount', '') for post in posts]
+    captions = [post.get('caption', '') for post in posts]  # type: list # from dic get "caption" in list of posts
+    urls = [post.get('url', '') for post in posts] # type: list
+    id_var = [post.get('id', '') for post in posts]  # type: list
+    likes_count = [post.get('likesCount', '') for post in posts]  # type: list
     return captions, urls, id_var, likes_count
 
 
