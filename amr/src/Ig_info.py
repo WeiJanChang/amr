@@ -76,10 +76,8 @@ class LatestPostInfo(NamedTuple):
         pass
 
     def to_dataframe(self) -> pl.DataFrame:
-        try:
-            return pl.DataFrame(self.data)
-        except pl.ComputeError:
-            return pl.DataFrame(self.data, infer_schema_length=300)
+        return (pl.DataFrame(self.data, infer_schema_length=300)
+                .unique('id'))
 
     @classmethod
     def concat(cls, infos: list['LatestPostInfo']) -> 'LatestPostInfo':
@@ -177,6 +175,7 @@ if __name__ == '__main__':
     info = [it.collect_latest_posts() for it in ify]
     ret = LatestPostInfo.concat(info)
     df = ret.to_dataframe()
+    print(df.shape[0])
 
     # FALSE
     # ret.remove_duplicate().contain_duplicated()
