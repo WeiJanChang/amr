@@ -1,18 +1,10 @@
 import os
-import requests
-from bs4 import BeautifulSoup
 import pandas as pd
-from PIL import Image
 import instaloader
-import requests
-
 from pathlib import Path
-from typing import Union, Tuple, List
-
+from typing import Union, Tuple
 import cv2
 import numpy as np
-import pytesseract
-from pygments.formatters import img
 import pytesseract
 
 
