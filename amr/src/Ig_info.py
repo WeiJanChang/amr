@@ -162,7 +162,8 @@ class IgInfoFactory:
 
     @property
     def hashtag(self) -> str:
-        # TODO check
+        # split file name into two part, one is str, another part is int
+        # extract the first one [0] as hashtag
         return re.split(r'\d', self._file, 1)[0]
 
     @property
@@ -223,4 +224,3 @@ if __name__ == '__main__':
     remove_ = ret.remove_unused_fields()
     # ret.contain_duplicated()
     df = ret.to_dataframe()
-
