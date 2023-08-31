@@ -33,7 +33,7 @@ import demoji
 from langdetect import detect, LangDetectException
 
 
-def remove_emojis(text):
+def remove_emojis(text) -> str:
     """
     :param text: all text in files
     :return: modified text with any emojis removed (replaced emoji to "")
@@ -41,7 +41,7 @@ def remove_emojis(text):
     return demoji.replace(text, "")
 
 
-def remove_emojis_from_json(json_data):
+def remove_emojis_from_json(json_data) -> list:
     """
     :param json_data: json file
     :return: modified json file without emoji
@@ -101,7 +101,7 @@ def extract_captions_urls(posts: list):
     Each caption/URL/ID/like counts are preceded by its corresponding post index.
     """
     captions = [post.get('caption', '') for post in posts]  # type: list # from dic get "caption" in list of posts
-    urls = [post.get('url', '') for post in posts] # type: list
+    urls = [post.get('url', '') for post in posts]  # type: list
     id_var = [post.get('id', '') for post in posts]  # type: list
     likes_count = [post.get('likesCount', '') for post in posts]  # type: list
     return captions, urls, id_var, likes_count
@@ -193,7 +193,8 @@ def contains_non_english(text):
         'Lithuanian': 'lt'
     }
 
-    is_not_english = language != 'en' and language not in languages.values()
+    is_not_english = language != 'en' and language not in languages.values()  # type: bool
+
     return contains_non_ascii or is_not_english
 
 
