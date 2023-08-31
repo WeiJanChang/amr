@@ -1,12 +1,50 @@
+"""
+To evaluate Antimicrobial resistance (AMR) messaging from Instagram.
+To do a content analysis to understand what type of messages (themes) have been used on social media for AMR.
+
+pipeline
+
+Step I. Data was extracted from Instagram using the Apify web tool and downloaded as JSON file
+
+Time frame: 01 Jan 2017 to 01 July 2023
+Language: English
+
+The 11 hashtags(keywords) are:
+1. AMR
+2. Antimicrobial resistance
+3. Antibiotics
+4. Antimicrobials
+5. Antimicrobial stewardship
+6. Drug resistant
+7. Superbugs
+8. Antibiotic resistance
+9. Infections
+10. Bacterial infections
+11. Antibiotic prescribing
+
+Step II. Combine these 11 json files and find unique id of post
+
+Step III. Select useful image to convey health-related information.
+
+Step IV: Assign images to different categories below
+
+1. The Humour
+2. Shock/Disgust/Fear
+3. Educational/Informative
+4. Personal Stories
+5. Opportunistic
+6. Advocacy
+"""
 import json
 import re
-from copy import deepcopy
+from copy import deepcopy  # copy an object which is completely independent of the original object
 from pathlib import Path
 from typing import TypedDict, Any, NamedTuple
+# Namedtuple is accessible like dict (key-value pairs) and is immutable(unchangeable)
 import polars as pl
 
 
-class PostDict(TypedDict):
+class PostDict(TypedDict):  # topPosts
     id: str
     type: str
     shortCode: str
@@ -16,19 +54,21 @@ class PostDict(TypedDict):
     url: str  # image url = url of a post
     commentsCount: int
     firstComment: str
-    latestComments: list[Any]  # TODO check
+    latestComments: list[[]]  # empty list in latestComments
     dimensionsHeight: int
     dimensionsWidth: int
     displayUrl: str
-    images: list[Any]  # TODO check
-    alt: Any | None  # TODO check
+    images: list[[]]  # empty list in images
+    alt: Any | None  # alternative text. text referring to the image
     likesCount: int
     timestamp: str
-    childPosts: list[Any]  # TODO check
+    childPosts: list[[]]  # empty list in childPosts
     ownerId: str
 
-    #
-    is_selected: bool | None  # not yet implemented
+    def is_selected_image(self) -> bool:
+        # is_selected: bool | None  # not yet implemented
+        # todo
+        pass
 
 
 class DownloadDict(TypedDict):
@@ -43,6 +83,8 @@ class DownloadDict(TypedDict):
 
 
 class LatestPostInfo(NamedTuple):
+    # find hashtag(11 keyword) in LatestPostInfo.concat(info), it shows list[str]
+    # find file name in path, it sows str
     hashtag: str | list[str]
     data: list[PostDict]
 
@@ -51,23 +93,26 @@ class LatestPostInfo(NamedTuple):
         return len(self.data)
 
     def contain_duplicated(self, field: str = 'id') -> bool:
-        # check url, caption duplicated? or only id?
-        validate = set()
+        # check if include duplicate id
+        validate = set()  # set is unordered and can't have same element
         for it in self.data:
-            validate.add(it[field])
-        print(len(self.data), len(validate))
-        return len(self.data) != len(validate)
+            validate.add(it[field])  # find unique id into set
+        # print('Number of total id(images):', len(self.data), ', Number of unique id(images): ', len(validate))
+        # print(f'These "{(len(self.data) - len(validate))}" duplicated id(images) should be deleted')
+        return len(self.data) != len(validate)  # if it includes duplicate id, return True
 
     def remove_unused_fields(self) -> 'LatestPostInfo':
+        # todo: if a column include all Null and empty list --> drop that column
 
         ret = []
         for it in self.data:
             new = deepcopy(it)
-            for k, v in it.items():
-                if isinstance(v, list) and len(v) == 0:
+
+            for k, v in it.items():  # type: str, list  # key and value in data
+                if isinstance(v, list) and len(v) == 0:  # if value and len of value ==0, add null in dataset
                     new[k] = pl.Null
 
-            ret.append(new)
+            ret.append(new)  # dataset includes null in cell
 
         return self._replace(data=ret)
 
@@ -99,6 +144,7 @@ class LatestPostInfo(NamedTuple):
 
 
 class IgInfoFactory:
+    # todo: how/when to init object
 
     def __init__(self, file: str,
                  data: list[DownloadDict]):
@@ -107,7 +153,7 @@ class IgInfoFactory:
         self.data = data
 
     @classmethod
-    def load(cls, file: Path | str) -> 'IgInfoFactory':  # type of iginfofactory
+    def load(cls, file: Path | str) -> 'IgInfoFactory':  # type of IgInfoFactory
         file = Path(file)
         if file.exists() and file.is_file():
             with open(Path(file), 'rb') as f:
@@ -173,10 +219,8 @@ if __name__ == '__main__':
     d = '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/json file'
     ify = load_from_directory(d)
     info = [it.collect_latest_posts() for it in ify]
-    ret = LatestPostInfo.concat(info)
+    ret = LatestPostInfo.concat(info)  # concat 11 json files
+    remove_ = ret.remove_unused_fields()
+    # ret.contain_duplicated()
     df = ret.to_dataframe()
-    print(df.shape[0])
-
-    #FALSE
-    # ret.remove_duplicate().contain_duplicated()
 
