@@ -144,7 +144,8 @@ class LatestPostInfo(NamedTuple):
 
 
 class IgInfoFactory:
-    # todo: how/when to init object
+    # init: when class created, method of "__init__" is to initialize the object
+    # self: __init__(self) is default. self represents the object of the class itself
 
     def __init__(self, file: str,
                  data: list[DownloadDict]):
