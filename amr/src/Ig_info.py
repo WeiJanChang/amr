@@ -84,7 +84,7 @@ class DownloadDict(TypedDict):
 
 class LatestPostInfo(NamedTuple):
     # find hashtag(11 keyword) in LatestPostInfo.concat(info), it shows list[str]
-    # find file name in path, it sows str
+    # find file name in path, it shows str
     hashtag: str | list[str]
     data: list[PostDict]
 
@@ -95,10 +95,12 @@ class LatestPostInfo(NamedTuple):
     def contain_duplicated(self, field: str = 'id') -> bool:
         # check if include duplicate id
         validate = set()  # set is unordered and can't have same element
+
         for it in self.data:
             validate.add(it[field])  # find unique id into set
-        # print('Number of total id(images):', len(self.data), ', Number of unique id(images): ', len(validate))
-        # print(f'These "{(len(self.data) - len(validate))}" duplicated id(images) should be deleted')
+        print('Number of total id(images):', len(self.data), ', Number of unique id(images): ', len(validate))
+        print(f'These "{(len(self.data) - len(validate))}" duplicated id(images) should be deleted')
+
         return len(self.data) != len(validate)  # if it includes duplicate id, return True
 
     def remove_unused_fields(self) -> 'LatestPostInfo':
@@ -116,9 +118,16 @@ class LatestPostInfo(NamedTuple):
 
         return self._replace(data=ret)
 
-    def remove_duplicate(self) -> 'LatestPostInfo':
-        # TODO
-        pass
+    def remove_duplicate(self, field: str = 'id') -> 'LatestPostInfo':
+        unique_data = []
+        validate = set()
+        for it in self.data:
+            it_id = it[field]
+            if it_id not in validate:
+                unique_data.append(it)
+                validate.add(it_id)
+        print(len(unique_data))
+        return self._replace(data=unique_data)
 
     def to_dataframe(self) -> pl.DataFrame:
         return (pl.DataFrame(self.data, infer_schema_length=300)
@@ -150,15 +159,15 @@ class IgInfoFactory:
     def __init__(self, file: str,
                  data: list[DownloadDict]):
 
-        self._file = file
-        self.data = data
+        self._file = file  # file.stem
+        self.data = data  # json.load(f)
 
     @classmethod
     def load(cls, file: Path | str) -> 'IgInfoFactory':  # type of IgInfoFactory
         file = Path(file)
         if file.exists() and file.is_file():
             with open(Path(file), 'rb') as f:
-                return IgInfoFactory(file.stem, json.load(f))
+                return IgInfoFactory(file.stem, json.load(f))  # init class
         raise FileNotFoundError('')
 
     @property
@@ -223,5 +232,7 @@ if __name__ == '__main__':
     info = [it.collect_latest_posts() for it in ify]
     ret = LatestPostInfo.concat(info)  # concat 11 json files
     remove_ = ret.remove_unused_fields()
-    # ret.contain_duplicated()
+    ret.contain_duplicated()
+    ret.remove_duplicate()
     df = ret.to_dataframe()
+
