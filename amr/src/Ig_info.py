@@ -39,7 +39,9 @@ import json
 import re
 from copy import deepcopy  # copy an object which is completely independent of the original object
 from pathlib import Path
-from typing import TypedDict, Any, NamedTuple
+from typing import TypedDict, Any, NamedTuple, Optional, List
+
+import pandas as pd
 # Namedtuple is accessible like dict (key-value pairs) and is immutable(unchangeable)
 import polars as pl
 
@@ -50,24 +52,32 @@ class PostDict(TypedDict):  # topPosts
     shortCode: str
     caption: str
     hashtags: list[str]
-    mentions: list[str]  # who was @mentioned in a post
+    mentions: Any  # who was @mentioned in a post
     url: str  # image url = url of a post
     commentsCount: int
     firstComment: str
-    latestComments: list[[]]  # empty list in latestComments
+    latestComments: list[Any]
     dimensionsHeight: int
     dimensionsWidth: int
     displayUrl: str
-    images: list[[]]  # empty list in images
+    images: list[Any]
     alt: Any | None  # alternative text. text referring to the image
     likesCount: int
     timestamp: str
-    childPosts: list[[]]  # empty list in childPosts
+    childPosts: list[...]
     ownerId: str
 
-    def is_selected_image(self) -> bool:
-        # is_selected: bool | None  # not yet implemented
+    def is_selected_image(self, field: str = 'URL') -> bool:
         # todo
+        p = '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Instagram 1 + 2 with all information (unique URL only).xlsx'
+        df = pd.read_excel(p, engine='openpyxl')
+        image_url = []
+        for it in df[field]:
+            image_url.append(it)
+        print(image_url)
+        # is_selected: bool | None  # not yet implemented
+
+        return
         pass
 
 
@@ -104,15 +114,18 @@ class LatestPostInfo(NamedTuple):
         return len(self.data) != len(validate)  # if it includes duplicate id, return True
 
     def remove_unused_fields(self) -> 'LatestPostInfo':
-        # todo: if a column include all Null and empty list --> drop that column
 
         ret = []
         for it in self.data:
             new = deepcopy(it)
-
-            for k, v in it.items():  # type: str, list  # key and value in data
+            for k, v in it.items():  # type: str, Any  # key and value in data
                 if isinstance(v, list) and len(v) == 0:  # if value and len of value ==0, add null in dataset
                     new[k] = pl.Null
+
+                elif k in (
+                        'shortCode', 'firstComment', 'latestComments', 'dimensionsHeight', 'dimensionsWidth',
+                        'displayUrl', 'images', 'alt', 'childPosts', 'videoViewCount', 'productType'):
+                    del new[k]
 
             ret.append(new)  # dataset includes null in cell
 
@@ -123,7 +136,7 @@ class LatestPostInfo(NamedTuple):
         validate = set()
         for it in self.data:
             it_id = it[field]
-            if it_id not in validate:
+            if it_id not in validate:  # todo: why is not in?
                 unique_data.append(it)
                 validate.add(it_id)
         print(len(unique_data))
@@ -231,8 +244,8 @@ if __name__ == '__main__':
     ify = load_from_directory(d)
     info = [it.collect_latest_posts() for it in ify]
     ret = LatestPostInfo.concat(info)  # concat 11 json files
-    remove_ = ret.remove_unused_fields()
+    ret = ret.remove_unused_fields()
     ret.contain_duplicated()
     ret.remove_duplicate()
     df = ret.to_dataframe()
-
+    print(df)
