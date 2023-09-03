@@ -18,7 +18,8 @@ from nltk.corpus import stopwords, words
 from nltk.stem.wordnet import WordNetLemmatizer
 from itertools import chain  # To merge multiple lists into a single list
 
-all_instagram_df = pd.read_csv('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/all_Instagram_data(non-English excluded).csv')
+all_instagram_df = pd.read_csv(
+    '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/all_Instagram_data(non-English excluded).csv')
 new_df = all_instagram_df
 
 """"Topic modelling"""
@@ -30,7 +31,7 @@ new_df = all_instagram_df
 """Step 1: clean the data"""
 
 stop = set(stopwords.words('english'))
-custom_stop_words = {'your', 'I', 'for','and','the','to','or','in','of','my'}
+custom_stop_words = {'your', 'I', 'for', 'and', 'the', 'to', 'or', 'in', 'of', 'my'}
 
 # 合併原本的停用詞列表和自訂的停用詞
 all_stop_words = stop.union(custom_stop_words)
@@ -43,7 +44,7 @@ WordNet lexical database to perform lemmatization. This helps reduce inflected w
 which can be useful for text analysis and processing tasks"""
 
 
-def clean(text):
+def clean(text: str) -> list[str]:
     try:
         if text is None:
             raise ValueError("Input 'text' is None.")
