@@ -1,40 +1,4 @@
-"""
-To evaluate Antimicrobial resistance (AMR) messaging from Instagram.
-To do a content analysis to understand what type of messages (themes) have been used on social media for AMR.
 
-pipeline
-
-Step I. Data was extracted from Instagram using the Apify web tool and downloaded as JSON file
-
-Time frame: 01 Jan 2017 to 01 July 2023
-Language: English
-
-The 11 hashtags(keywords) are:
-1. AMR
-2. Antimicrobial resistance
-3. Antibiotics
-4. Antimicrobials
-5. Antimicrobial stewardship
-6. Drug resistant
-7. Superbugs
-8. Antibiotic resistance
-9. Infections
-10. Bacterial infections
-11. Antibiotic prescribing
-
-Step II. Combine these 11 json files and find unique url of post
-
-Step III. Select useful image to convey health-related information.
-
-Step IV: Assign images to different categories below
-
-1. The Humour
-2. Shock/Disgust/Fear
-3. Educational/Informative
-4. Personal Stories
-5. Opportunistic
-6. Advocacy
-"""
 import itertools
 import json
 import os
@@ -161,12 +125,12 @@ if __name__ == '__main__':
         return json_list
 
 
-    open_json_files('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/json file')
-    #print(json_list)
+    open_json_files('/Users/wei/Documents/Job Application 2023/CARA Network/AMR /AMR Instagram data/json file')
+    print(json_list)
     for p in json_list:
-        p = '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/json file/' + p
+        p = '/Users/wei/Documents/Job Application 2023/CARA Network/AMR /AMR Instagram data/json file/' + p
         j = load_json(p)
-        print(len(find_unique(j)))
+        print(find_unique(j))
 
 
 
