@@ -203,7 +203,8 @@ if __name__ == '__main__':
     df = load_json(
         '/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/Superbugs/Superbugs 01 Jan 2017 - 01 July 2023.json')
     # Print the captions and URLs for easy reference
-    df['Caption'], df['URL'], df['ID'], df['LikesCount'] = zip(*df['latestPosts'].apply(extract_captions_urls))
+    df['Caption'], df['URL'], df['ID'], df['LikesCount'] = zip(
+        *df['latestPosts'].apply(extract_captions_urls))  # todo: zip?
 
     column_del = ['topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
 
