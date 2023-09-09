@@ -38,9 +38,11 @@ Step IV: Assign images to different categories below
 import json
 import re
 from copy import deepcopy  # copy an object which is completely independent of the original object
+from os import path
 from pathlib import Path
 from typing import TypedDict, Any, NamedTuple, Optional, List
 
+import instaloader
 import pandas as pd
 # Namedtuple is accessible like dict (key-value pairs) and is immutable(unchangeable)
 import polars as pl
@@ -156,8 +158,26 @@ class LatestPostInfo(NamedTuple):
 
         return LatestPostInfo(hashtags, batch_data)
 
-    def download_image(self, output_dir: Path | str):
-        """download image with `ID` filename TODO"""  # use unique as filename
+    def download_image(self, id,output_dir: Path | str):
+
+        """download image with `id` filename TODO"""  # use unique as filename
+        try:
+            loader = instaloader.Instaloader()
+            post = instaloader.Post.from_shortcode(loader.context,id.split('/')[-2])
+            image_name = f"{id}.jpg"
+            file_path =path.join(output_dir,image_name)
+            loader.download_post(post, target=file_path)
+        except instaloader.exceptions.InvalidArgumentException:
+            print("can't open URL")
+        except instaloader.exceptions.ConnectionException as e:
+            print("connect error:", e)
+        except instaloader.exceptions.ProfileNotExistsException:
+            print("user doesn't exist")
+        except instaloader.exceptions.TwoFactorAuthRequiredException:
+            print("Need authorized")
+        except Exception as e:
+            print("download error:", e)
+
         pass
 
     def to_pickle(self):  # It can store image
@@ -240,12 +260,13 @@ def printdf(df: pl.DataFrame,
 
 
 if __name__ == '__main__':
-    d = '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/json file'
+    d = '/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/json file'
     ify = load_from_directory(d)
     info = [it.collect_latest_posts() for it in ify]
     ret = LatestPostInfo.concat(info)  # concat 11 json files
     ret = ret.remove_unused_fields()
     ret.contain_duplicated()
     ret.remove_duplicate()
-    df = ret.to_dataframe()
-    print(df)
+
+    # ret.to_dataframe().write_excel(
+    #     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/unique_id.xlsx')
