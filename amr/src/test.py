@@ -24,16 +24,17 @@ Step 3. data cleaning: create a condition to select useful hashtags, only Englis
 """
 
 from pathlib import Path  # pathlib: module, Path: class. Checking if a path exist
-from typing import Optional, List  # typing: support for type hint
+from typing import Optional, List, Any  # typing: support for type hint
 import pandas as pd
 from typing import Union
 import json
 import re
 import demoji
 from langdetect import detect, LangDetectException
+from unnecessary_keywords import keyword_sets
 
 
-def remove_emojis(text) -> str:
+def remove_emojis(text: str) -> str:
     """
     :param text: all text in files
     :return: modified text with any emojis removed (replaced emoji to "")
@@ -41,7 +42,7 @@ def remove_emojis(text) -> str:
     return demoji.replace(text, "")
 
 
-def remove_emojis_from_json(json_data) -> list:
+def remove_emojis_from_json(json_data: list[Any]) -> list:
     """
     :param json_data: json file
     :return: modified json file without emoji
@@ -89,7 +90,7 @@ def load_json(p: Union[Path, str]) -> pd.DataFrame:
             raise RuntimeError(f'multiple json files under the {p}')
 
 
-def extract_captions_urls(posts: list):
+def extract_captions_urls(posts: list[Any]) -> tuple[list[str], list[str], list[str], list[int]]:
     """
     Extract captions and URLs from a list of posts.
 
@@ -100,14 +101,14 @@ def extract_captions_urls(posts: list):
     :return: A list of caption/URL/ID/like counts extracted from the posts.
     Each caption/URL/ID/like counts are preceded by its corresponding post index.
     """
-    captions = [post.get('caption', '') for post in posts]  # type: list # from dic get "caption" in list of posts
-    urls = [post.get('url', '') for post in posts]  # type: list
-    id_var = [post.get('id', '') for post in posts]  # type: list
-    likes_count = [post.get('likesCount', '') for post in posts]  # type: list
+    captions = [post.get('caption', '') for post in posts]  # from dic get "caption" in list of posts
+    urls = [post.get('url', '') for post in posts]
+    id_var = [post.get('id', '') for post in posts]
+    likes_count = [post.get('likesCount', '') for post in posts]
     return captions, urls, id_var, likes_count
 
 
-def dropdata(df: pd.DataFrame,
+def drop_col(df: pd.DataFrame,
              column_drop: Optional[List[str]] = None,
              keywords_drop: Optional[List[str]] = None,
              save_path: Optional[Path] = None) -> pd.DataFrame:
@@ -118,22 +119,23 @@ def dropdata(df: pd.DataFrame,
     :param save_path: save df
     :return: modified df
     """
-    df = df.copy()
+    df1 = df.copy()
 
     if column_drop is not None:
-        df = df.drop(columns=column_drop)
+        df1 = df.drop(columns=column_drop)
 
     if keywords_drop is not None:
-        df = df[df['name'].isin(keywords_drop) == False]
+        df1 = df[df['name'].isin(keywords_drop) == False]
 
     if save_path is not None:
-        df.to_csv(save_path)
+        df1.to_csv(save_path)
 
-    return df
+    return df1
 
 
 def organised_data(df: pd.DataFrame,
                    save_path: Optional[Path] = None) -> pd.DataFrame:
+    # todo: solve warning
     df['Caption'] = df['Caption'].apply(lambda x: [str(item) for item in x])
     df['URL'] = df['URL'].apply(lambda x: [str(item) for item in x])
     df['ID'] = df['ID'].apply(lambda x: [str(item) for item in x])
@@ -146,18 +148,17 @@ def organised_data(df: pd.DataFrame,
         'URL': [url for urls in df['URL'] for url in urls],
         'ID': [id for id_var in df['ID'] for id in id_var],
         'LikesCount': [likesCount for likes_count in df['LikesCount'] for likesCount in likes_count]})
-
     # reset index
     new_df.reset_index(drop=True, inplace=True)
 
-    if save_path:
+    if save_path is not None:
         new_df.to_csv(save_path, index=False)
 
     return new_df
 
 
 # remove non-English languages
-def contains_non_english(text):
+def contains_non_english(text: str) -> bool:
     pattern = r'[^\x00-\x7F]'
     contains_non_ascii = bool(re.search(pattern, text))  # ASCII is a character encoding standard
 
@@ -199,101 +200,28 @@ def contains_non_english(text):
 
 
 if __name__ == '__main__':
-    df = load_json('/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR')
+    df = load_json(
+        '/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/Superbugs/Superbugs 01 Jan 2017 - 01 July 2023.json')
     # Print the captions and URLs for easy reference
     df['Caption'], df['URL'], df['ID'], df['LikesCount'] = zip(*df['latestPosts'].apply(extract_captions_urls))
 
-    column_drop = ['topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
+    column_del = ['topPostsOnly', 'profilePicUrl', 'postsCount', 'topPosts', 'latestPosts']
 
-    keyword_sets = [["infectionsurinaires", "infectionsofadiffrentkind", "infectionsaypakpunjab",
-                     "infectionsofadifferentkindpartll", "infectionsofadifferentkindstep1",
-                     "infectionsexuellementtransmissible", "infectionsurinaires", "infectionsband",
-                     "infectionssexuellementtransmissibles", "infectionsrespiratoires", "infectionsvaginales",
-                     "infectionsportswear", "infectionsofadifferentkindstep", "infectionsrespiratoires",
-                     "infectionstore", "infections_urinaires", "infectionsofdifferentkind", "america", "amreading",
-                     "captainamerica", "amreli", "americanstaffordshireterrier", "americangirl", "americansalon",
-                     "americanbullypocket", "americanbulldog", "americanhistory", "madeinamerica", "copaamerica",
-                     "amrezy", "amritsar", "discoversouthamerica", "nativeamerican", "americanpitbull",
-                     "makeamericagreatagain", "american", "africanamerican", "proudamerican", "américa", "latinamerica",
-                     "amrdiab", "southamerica", "americaneagle", "americanairlines", "americanhorrorstory", "amerika",
-                     "americafirst", "americanboy", "americancars", "americanbullies", "americanflag",
-                     "americanpitbullterrier", "americalatina", "pastaamericana", "godblessamerica", "capitaoamerica",
-                     "amersfoort", "americanstaffordshire", "americasteam", "feriaamericana", "visitsouthamerica",
-                     "americanbullyofficial", "americanbullypuppy", "americanbullyxl", "americanbully", "americancar",
-                     "amrap", "captainamericacivilwar", "keepamericagreat", "amravati",
-                     "antimicrobialresistanceintanzania", "antimicrobialresistanceindonesia",
-                     "antimicrobialresistancetanzania", "antimicrobialresistancemalaysia",
-                     "antimicrobialresistancemalaysia💊", "antimicrobialresistanceis", "antimicrobialresistanceinfo➡",
-                     "antimicrobialresistance✔️", "antimicrobialresistancewhat", "antimicrobialresistance💊💉",
-                     "antimicrobialresistance🙏", "antimicrobialresistancecontaintment", "antimicrobialresistance😉",
-                     "antimicrobialresistanceisabooboo", "antimicrobialresistancecartoonposter",
-                     "antimicrobialresistanceawarness", "antimicrobialresistanceisnotathing",
-                     "antimicrobialresistanceisscary", 'antibioticsmile', 'antibioticskickingin', 'antibioticsftw',
-                     'antimicrobialsponge', 'antimicrobials2018', 'antimicrobialsensitivitytesting', 'antimicrobials💉',
-                     "antimicrobialstewardshipwaddup", "antimicrobialstewardshiptraining2019",
-                     "antimicrobialstewardshiprocks", "antimicrobialstewardchef",
-                     "antimicrobialstewardshipworkshop2018", "antimicrobialstewardahipprogram",
-                     "antimicrobialstewardshipinsicilia", "antimicrobialstewardship✔", "antimicrobialstewardardship",
-                     "antimicrobialstewardshipinpediatrics", "antimicrobialstewardshipdinner",
-                     "antimicrobialstewardshipbrasil", "antimicrobialstewardofgondor",
-                     "antimicrobialstewardshipprotocol", "antimicrobialstewardshipcertificate",
-                     "antimicrobialstewardship🧐", "antimicrobialstewardship🎯", "antimicrobialstewardaship",
-                     "antimicrobialstewardshipconference", "antimicrobialstewardshippharmacist",
-                     "antimicrobialstewardship🦠", "antimicrobialstewardshiprogram", "antimicrobialstewardshipcourse",
-                     "antimicrobialstewardshipprogrammes", "antimicrobialstewardshipsymposium",
-                     "antimicrobialstewardship💊", "antimicrobialstewardship2018", "drugresistantbugs",
-                     "drugresistantchlamydia", "drugresistantgerms", "drugresistantpathogens", "drugresistantuti",
-                     "drugresistantstd", "drugresistantbug", "drugresistanthiv", "drugresistantecoli",
-                     "drugresistantward", "drugresistantinsomnia", "drugresistantacinetobacter", "drugresistantcat",
-                     "drugresistantnasasusunod", "drugresistantcandidaauriscauris", "drugresistanttbcentre",
-                     "drugresistantb", "drugresistantepilepsysucksevenmore", "drugresistantepilespy",
-                     "drugresistant_tuberculosis", "drugresistantdepresssion", "drugresistantyak",
-                     "drugresistantbacterialinfections", "drugresistantaids", "drugresistantfeline",
-                     "drugresistantplants😊", "drugresistanttbguidance", "superbugsindia", "superbugsy", "superbugster",
-                     "superbugsisreal", "superbugsbunny", "superbugsunday", "superbugsdepkxd", "superbugslayerspolo",
-                     "superbugsboardgame", "superbugs1600", "superbugsarereal", "superbugsen", "superbugs23",
-                     "superbugs_india", "superbugsafari", "superbugsbunnyfunkopop", "superbugshakycam", "superbugsize",
-                     "superbugs🖋️🔬", "superbugsareassholes", "superbugstotherescue", "superbugsmile",
-                     "superbugshatecleanhand", "superbugstrikesagain", "superbugsslayers", "superbugsinspace",
-                     "superbugss", "superbugsandyou", "superbugsと言う無料展示", "antibioticresistanceexplained",
-                     "antibioticresistancemonth", "antibioticresistance💊💉", "antibioticresistance⚠️",
-                     "antibioticresistanceisbad", "antibioticresistanceis4real", "antibioticresistance👈",
-                     "antibioticresistanceresearch", "antibioticresistanceawarness", "antibioticresistancetest",
-                     "antibioticresistancetesting", "antibioticresistanceinindia", "antibioticresistanceinchildren",
-                     "antibioticresistancegenesantibióticos", "antibioticresistanceawareness2021",
-                     "antibioticresistanceisanightmare", "antibioticresistancefight", "antibioticresistance💊👊",
-                     "antibioticresistanceontherise", "antibioticresistanceofmicrobes", "bacterialinfectionsstink",
-                     "bacterialinfectionsuck", "bacterialinfectionsinchildren", "bacterialinfectionsareawesome",
-                     "bacterialinfectionsepsis", "bacterialinfectionsaywhat", "bacterialinfectionsaregross",
-                     "bacterialinfectionsinbotheyes", "bacterialinfectionsja", "bacterialinfectionsgalore",
-                     "bacterialinfections", "bacterialinfectionsofskin", "bacterialinfectionshavenothingonme",
-                     "bacterialinfectionsinherstomach", "bacterialinfectionsalmostallgone", "bacterialinfectionsabound",
-                     "bacterialinfectionscangetfuckedupthearsebybluewhalesdick", "bacterialinfectionsucks",
-                     "bacterialinfectionscauses", "bacterialinfectionsofthe5thdimension", "bacterialinfectionsarecool",
-                     "bacterialinfectionsarenotfun", "bacterialinfections😩", "bacterialinfectionsoftheskin",
-                     "bacterialinfectionscantholddisdown", "bacterialinfectionsux", "bacterialinfectionspeedrun",
-                     "bacterialinfectionsareabitch", "bacterialinfectionse", "bacterialinfectionsquad",
-                     "bacterialinfectionsrising", "bacterialinfectionsinhindi", "bacterialinfectionsforthewin",
-                     "bacterialinfectionsarenot", "bacterialinfectionsarenojoke",
-                     "bacterialinfectionsmacterialinfection", "bacterialinfectionsintheblood😔💉💊",
-                     "bacterialinfectionsindogs", "bacterialinfectionsfoundhere", "bacterialinfectionsarethebest",
-                     "bacterialinfectionsandsethrogen"]]
+    save_path = Path(
+        '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR/Superbugs 01 Jan 2017 - 01 July 2023_hashtags.csv',
+        index=False)
 
-    for keywords_drop in keyword_sets:
-        save_path = Path(
-            '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR/AMR 01 Jan 2017 - 01 July 2023_hashtags.csv',
-            index=False)
+    droped_df = drop_col(df, column_drop=column_del, keywords_drop=keyword_sets)
 
-        droped_df = dropdata(df, column_drop=column_drop, keywords_drop=keywords_drop, save_path=save_path)
-        new_df = organised_data(droped_df)
+    new_df = organised_data(droped_df)
 
-        indices_to_drop = new_df[new_df['Caption'].apply(contains_non_english)].index
-        indices_to_drop = new_df[new_df.apply(lambda row: contains_non_english(row['Caption']), axis=1)].index
+    indices_to_drop = new_df[new_df['Caption'].apply(contains_non_english)].index
+    indices_to_drop = new_df[new_df.apply(lambda row: contains_non_english(row['Caption']), axis=1)].index
 
-        new_df.loc[indices_to_drop, ['Caption', 'URL', 'ID']] = None
-        new_df.dropna(subset=['Caption', 'URL', 'ID'], how='all', inplace=True)
+    new_df.loc[indices_to_drop, ['Caption', 'URL', 'ID']] = None
+    new_df.dropna(subset=['Caption', 'URL', 'ID'], how='all', inplace=True)
 
-        new_df.to_csv(
-            '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/AMR/AMR 01 Jan 2017 - 01 July 2023_specific hashtags (non-English excluded).csv',
-            index=False)
-        new_df.reset_index(drop=True, inplace=True)
+    # new_df.to_csv(
+    #     '/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/Superbugs/Superbugs 01 Jan 2017 - 01 July 2023_specific hashtags (non-English excluded)test.csv',
+    #     index=False)
+    new_df.reset_index(drop=True, inplace=True)
