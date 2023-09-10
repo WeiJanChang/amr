@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 from typing import Union, Tuple, List, Any
 
@@ -18,12 +19,12 @@ def create_latestpost_info(directory: PathLike) -> LatestPostInfo:
 
 def download_image(info: LatestPostInfo):
     df = info.to_dataframe()
-    loader = instaloader.Instaloader()
+    loader = instaloader.Instaloader(save_metadata=False)
     context: InstaloaderContext = loader.context
     for i in df.iter_rows(named=True):
         id = i['id']  # type: str
         url = i['url']
-        _download(loader,context, id, url)
+        _download(loader, context, id, url)
         print(id)
         break
 
@@ -32,10 +33,11 @@ def _download(loader: Instaloader, context: InstaloaderContext, post_id: str, po
     """
     Download images and videos via url and save name based on id from each post
     """
-    post = instaloader.Post.from_shortcode(context, post_url.split('/')[-2])
-    image_name = f"{post_id}.jpg"
-    # file_path = '/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/Instagram images'
-    loader.download_post(post, target=image_name)
+    shortcode = post_url.split('/')[-2]
+    post = instaloader.Post.from_shortcode(context, shortcode)
+    f = f"ID_{post_id}"
+    file_path = Path('/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/Instagram images')
+    loader.download_post(post, target=file_path / f)
 
 
 if __name__ == '__main__':
