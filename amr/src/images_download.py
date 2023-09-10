@@ -1,7 +1,8 @@
 from pathlib import Path
-from typing import Union
+from typing import Union, Tuple, List, Any
 
 import instaloader
+from instaloader import InstaloaderContext, Instaloader
 
 from amr.src.Ig_info_practice import load_from_directory, LatestPostInfo
 
@@ -15,24 +16,29 @@ def create_latestpost_info(directory: PathLike) -> LatestPostInfo:
     return ret.remove_unused_fields().remove_duplicate()
 
 
-def download_image(info: LatestPostInfo) -> bool:
-    df = info.to_dataframe().to_pandas()  # polar df to pandas df
-    post_url = df['url'].to_list()
-    return post_url
-
+def download_image(info: LatestPostInfo):
+    df = info.to_dataframe()
     loader = instaloader.Instaloader()
-    # post = instaloader.Post.from_shortcode(loader.context, post_url.split('/')[-2])
+    context: InstaloaderContext = loader.context
+    for i in df.iter_rows(named=True):
+        id = i['id']  # type: str
+        url = i['url']
+        _download(loader,context, id, url)
+        print(id)
+        break
 
-    image_name = f"{id}.jpg"
-    # file_path = ''
-    # loader.download_post(post, target=file_path)
 
-    return post_url
+def _download(loader: Instaloader, context: InstaloaderContext, post_id: str, post_url: str):
+    """
+    Download images and videos via url and save name based on id from each post
+    """
+    post = instaloader.Post.from_shortcode(context, post_url.split('/')[-2])
+    image_name = f"{post_id}.jpg"
+    # file_path = '/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/Instagram images'
+    loader.download_post(post, target=image_name)
 
 
 if __name__ == '__main__':
     d = '/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/json file'
     info = create_latestpost_info(d)
-    urls = download_image(info)
-    print(urls)
-    print('https://www.instagram.com/p/CuroezmPzbb/'.split('/')[-2])
+    urls_id = download_image(info)
