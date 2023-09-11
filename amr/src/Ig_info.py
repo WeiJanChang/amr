@@ -54,7 +54,7 @@ class PostDict(TypedDict):  # topPosts
     shortCode: str
     caption: str
     hashtags: list[str]
-    mentions: Any  # who was @mentioned in a post
+    mentions: list[str | None]  # who was @mentioned in a post
     url: str  # image url = url of a post
     commentsCount: int
     firstComment: str
@@ -138,7 +138,8 @@ class LatestPostInfo(NamedTuple):
         validate = set()
         for it in self.data:
             it_id = it[field]
-            if it_id not in validate:  # todo: why is not in?
+            if it_id not in validate:  # "not in" as unique id added to the first loop, if there still have the same id,
+                # not allow add it into validate
                 unique_data.append(it)
                 validate.add(it_id)
         print(len(unique_data))
@@ -157,28 +158,6 @@ class LatestPostInfo(NamedTuple):
             batch_data.extend(info.data)
 
         return LatestPostInfo(hashtags, batch_data)
-
-    def download_image(self, id,output_dir: Path | str):
-
-        """download image with `id` filename TODO"""  # use unique as filename
-        try:
-            loader = instaloader.Instaloader()
-            post = instaloader.Post.from_shortcode(loader.context,id.split('/')[-2])
-            image_name = f"{id}.jpg"
-            file_path =path.join(output_dir,image_name)
-            loader.download_post(post, target=file_path)
-        except instaloader.exceptions.InvalidArgumentException:
-            print("can't open URL")
-        except instaloader.exceptions.ConnectionException as e:
-            print("connect error:", e)
-        except instaloader.exceptions.ProfileNotExistsException:
-            print("user doesn't exist")
-        except instaloader.exceptions.TwoFactorAuthRequiredException:
-            print("Need authorized")
-        except Exception as e:
-            print("download error:", e)
-
-        pass
 
     def to_pickle(self):  # It can store image
         # TODO
@@ -218,7 +197,7 @@ class IgInfoFactory:
 
     @property
     def download_date(self) -> str:
-        """TODO"""
+        """TODO 檔名"""
         pass
 
     def collect_latest_posts(self) -> LatestPostInfo:
@@ -234,11 +213,13 @@ class IgInfoFactory:
 
 
 def load_from_directory(d: Path | str) -> list[IgInfoFactory]:
+    if not Path(d).is_dir():
+        raise ValueError('')
     return [IgInfoFactory.load(f) for f in Path(d).glob('*.json')]
 
 
 def load_from_excel(f: Path) -> LatestPostInfo:
-    """TODO"""
+    """TODO 從有的excel 對應到latestpostinfo, 找資料"""
     pass
 
 
