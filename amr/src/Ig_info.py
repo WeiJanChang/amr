@@ -121,13 +121,12 @@ class LatestPostInfo(NamedTuple):
         for it in self.data:
             new = deepcopy(it)
             for k, v in it.items():  # type: str, Any  # key and value in data
-                if isinstance(v, list) and len(v) == 0:  # if value and len of value ==0, add null in dataset
-                    new[k] = pl.Null
-
-                elif k in (
+                if k in (
                         'shortCode', 'firstComment', 'latestComments', 'dimensionsHeight', 'dimensionsWidth',
                         'displayUrl', 'images', 'alt', 'childPosts', 'videoViewCount', 'productType'):
                     del new[k]
+                elif isinstance(v, list) and len(v) == 0:  # if value and len of value ==0, add null in dataset
+                    new[k] = pl.Null
 
             ret.append(new)  # dataset includes null in cell
 
@@ -246,8 +245,6 @@ if __name__ == '__main__':
     info = [it.collect_latest_posts() for it in ify]
     ret = LatestPostInfo.concat(info)  # concat 11 json files
     ret = ret.remove_unused_fields()
+    ret.to_dataframe().write_excel('original_instagram_data.xlsx')
     ret.contain_duplicated()
     ret.remove_duplicate()
-
-    # ret.to_dataframe().write_excel(
-    #     '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/unique_id.xlsx')
