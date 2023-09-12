@@ -1,15 +1,11 @@
-import os
-import re
 from pathlib import Path
 from typing import Union, Tuple, List, Any
 import instaloader
-import polars as pl
 from instaloader import InstaloaderContext, Instaloader
 from amr.src.Ig_info import load_from_directory, LatestPostInfo
-from langdetect import detect, LangDetectException
 
-# todo: download images and video only with all enlgish Caption and hashtags, 將下載後的資料也用id取名(rename)，
-#  有多張就id_01,02,03...save all of them into one folder. preview jpgs in python,
+# todo: download images and video only with all enlgish Caption and hashtags,
+#  save all of them into one folder. preview jpgs in python,
 PathLike = Union[Path | str]
 
 
@@ -58,8 +54,32 @@ def _download(loader: Instaloader, context: InstaloaderContext, post_id: str, po
     loader.download_post(post, target=Path(output_path) / f)
 
 
+def rename(output_path: PathLike):
+    for path in Path(output_path).iterdir():
+        if path.is_dir():
+            jpg_files = sorted(path.glob("*.jpg"))  # Sort the files for consistent numbering
+            video_files = sorted(path.glob("*.mp4"))
+            txt_files = sorted(path.glob("*.txt"))
+            for i, jpg_file in enumerate(jpg_files, start=1):
+                new_name = f"{path.name}_{i}{jpg_file.suffix}"
+                new_path = jpg_file.with_name(new_name)
+                jpg_file.rename(new_path)
+            for i, video_file in enumerate(video_files, start=1):
+                new_name = f"{path.name}_{i}{video_file.suffix}"
+                new_path = video_file.with_name(new_name)
+                video_file.rename(new_path)
+            for txt_file in txt_files:
+                new_name = path.name + txt_file.suffix
+                new_path = txt_file.with_name(new_name)
+                txt_file.rename(new_path)
+
+    pass
+    # df['number of images'] = jpg_count
+    # non_english = df['caption'].apply(contains_non_english)  # type: bool
+    # df = df.filter(non_english)
+
+
 if __name__ == '__main__':
     d = '/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/json file'
     info = create_latestpost_info(d)
     output_path = Path('/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/Instagram images')
-    urls_id = download_image(info, output_path)
