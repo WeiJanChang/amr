@@ -141,7 +141,6 @@ class LatestPostInfo(NamedTuple):
                 # not allow add it into validate
                 unique_data.append(it)
                 validate.add(it_id)
-        print(len(unique_data))
         return self._replace(data=unique_data)
 
     def to_dataframe(self) -> pl.DataFrame:
