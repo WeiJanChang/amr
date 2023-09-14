@@ -1,13 +1,11 @@
-import re
-
-import numpy as np
-import pandas as pd
+import collections
+import os
 import polars as pl
 import time
 from pathlib import Path
-from typing import Union
+from typing import Union, Callable
 import instaloader
-from instaloader import InstaloaderContext, Instaloader, InstaloaderException, ConnectionException
+from instaloader import InstaloaderContext, Instaloader, InstaloaderException
 from amr.src.Ig_info import load_from_directory, LatestPostInfo
 
 # todo: download images and video only with all enlgish Caption and hashtags,
@@ -63,58 +61,61 @@ def _download(loader: Instaloader, context: InstaloaderContext, post_id: str, po
     loader.download_post(post, target=Path(output_path) / f)
 
 
-def download_postprocess(output_path: PathLike, new_dir: PathLike, verbose: bool = True):
-    id_list = []
-    num_jpg_list = []
-    num_video_list = []
+def download_postprocess(output_path: PathLike, new_dir: PathLike,
+                         move: bool = False, verbose: bool = True,
+                         out: PathLike = None) -> pl.DataFrame:
+    ret = collections.defaultdict(list)
+    # ret: return; defaultdict(list): it is easy to group a sequence of key-value pairs into a dictionary of lists
+
+    if move:
+        fn: Callable[[Path,Path],None] = os.rename  # fn: function
+        v = 'MOVE'
+    else:
+        import shutil
+        fn: Callable[[Path, Path],Path] = shutil.copy  # copies the file data
+        v = 'COPY'
+
     for path in Path(output_path).iterdir():  # select all folders in output_path
         if path.is_dir():  # whether path is directory
             jpg_files = sorted(path.glob("*.jpg"))  # Sort the files for consistent numbering
             video_files = sorted(path.glob("*.mp4"))
             txt_files = sorted(path.glob("*.txt"))
 
+            ret['id'].append(path.name.split('_')[1])
+            ret['n_image'].append(len(jpg_files))
+            ret['n_video'].append(len(video_files))
+
             for i, jpg_file in enumerate(jpg_files, start=1):
                 new_jpg_file = new_dir / f"{path.name}_{i}{jpg_file.suffix}"
-                jpg_file.rename(new_jpg_file)
-                id = re.split(r'(\d+)', (str(new_jpg_file).split('/')[-1]), 1)[1]  # type: str # \d+ integer part
-                id_list.append(id)
-                num_jpg_list.append(len(jpg_files))
+                fn(jpg_file, new_jpg_file)
+
                 if verbose:
-                    print(f"{jpg_file} -> {new_jpg_file}")
+                    print(f"{v}:{jpg_file} -> {new_jpg_file}")
 
             for j, video_file in enumerate(video_files, start=1):
                 new_video_file = new_dir / f"{path.name}_{j}{video_file.suffix}"
-                video_file.rename(new_video_file)
-                id = re.split(r'(\d+)', (str(new_video_file).split('/')[-1]), 1)[1]
-                id_list.append(id)
-                num_video_list.append(len(video_files))
+                fn(video_file, new_video_file)
 
                 if verbose:
-                    print(f"{video_file} -> {new_video_file}")
+                    print(f"{v}:{video_file} -> {new_video_file}")
 
             for k, txt_file in enumerate(txt_files, start=1):
                 new_txt_file = new_dir / f"{path.name}_{k}{txt_file.suffix}"
-                txt_file.rename(new_txt_file)
+                fn(txt_file, new_txt_file)
                 if verbose:
-                    print(f"{txt_file} -> {new_txt_file}")
+                    print(f"{v}:{txt_file} -> {new_txt_file}")
+    df = pl.DataFrame(ret)
+    if out is not None:
+        df.write_csv(out)
 
-    if len(num_video_list) == 0 in num_video_list:
-        num_video_list.append('0')
-        jpg_df = pd.DataFrame({'id': id_list, 'number of jpg': num_jpg_list})
-        video_df = pd.DataFrame({'id': id_list, 'number of video': num_video_list})
-        final_df = jpg_df.merge(video_df, on='id', how='outer')
-    else:
-        jpg_df = pd.DataFrame({'id': id_list, 'number of jpg': num_jpg_list})
-        final_df = jpg_df.copy()
-        final_df['number of video'] = '0'
-    return final_df
+    return df
 
 
 if __name__ == '__main__':
-    d = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/json file'
-    info = create_latestpost_info(d)
-    output_path = Path('/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/instagram_images_with_dir')
-    download_image(info, output_path)
-    new_dir = Path('/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/all_instagram_images')
-    df = download_postprocess(output_path, new_dir)
-    df.to_excel('/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/number_of_images_and_videos_with_id.xlsx')
+    # d = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/json file'
+    # info = create_latestpost_info(d)
+    output_path = Path('/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/test')
+    # download_image(info, output_path)
+    new_dir = Path('/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/rename_test')
+    save_path = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/n_images_video_with_id.csv'
+    df = download_postprocess(output_path, new_dir, out=save_path)
