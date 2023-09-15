@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 from typing import Union, Callable
 import instaloader
-from instaloader import InstaloaderContext, Instaloader, InstaloaderException
+from instaloader import InstaloaderContext, Instaloader, InstaloaderException, ConnectionException
 from amr.src.Ig_info import load_from_directory, LatestPostInfo
 
 # todo: download images and video only with all enlgish Caption and hashtags,
@@ -20,16 +20,17 @@ def create_latestpost_info(directory: PathLike) -> LatestPostInfo:
     return ret.remove_unused_fields().remove_duplicate()
 
 
-def download_image(info: LatestPostInfo, output_path: PathLike):
+def download_image(info: LatestPostInfo, output_path: PathLike, error_out: PathLike = None):
     """
     convert LatestPostInfo to polars df. get all ids and urls from df.
     for each download using _download and save images and videos to output_path
 
-    todo: new col name: number of images after to dataframe
+    :param error_out: any error messages save to csv file
     :param info: LatestPostInfo
     :param output_path: path
     :return:
     """
+    ret = collections.defaultdict(list)
     df = info.to_dataframe()
     loader = instaloader.Instaloader(save_metadata=False)
     context: InstaloaderContext = loader.context
@@ -38,14 +39,25 @@ def download_image(info: LatestPostInfo, output_path: PathLike):
         url = i['url']
         try:
             _download(loader, context, id, url, output_path)
+            ret['download fail'].append(False)
+        except ConnectionException as e:
+            print(f'{id} fail connection')
+            print(repr(e))  # repr:representation. return a string
+            ret['download fail'].append(True)
+
         except InstaloaderException as e:
-            print(f'{id} download fail')  # todo
+            print(f'{id} download fail')
             print(repr(e))
+            ret['download fail'].append(True)
+    error_df = pl.DataFrame(ret)
+    if error_out is not None:
+        error_df.write_csv(error_out)
 
-        time.sleep(5)
+    return error_df
 
 
-def _download(loader: Instaloader, context: InstaloaderContext, post_id: str, post_url: str, output_path: PathLike):
+def _download(loader: Instaloader, context: InstaloaderContext, post_id: str, post_url: str, output_path: PathLike,
+              exist_out: PathLike = None):
     """
     Download images and videos via url and save name based on id from each post
     :param loader: Instaloader
@@ -55,10 +67,23 @@ def _download(loader: Instaloader, context: InstaloaderContext, post_id: str, po
     :param output_path: path
     :return:
     """
+    ret = collections.defaultdict(list)
     shortcode = post_url.split('/')[-2]
     post = instaloader.Post.from_shortcode(context, shortcode)
+
     f = f"ID_{post_id}"
-    loader.download_post(post, target=Path(output_path) / f)
+    file_path = Path(output_path) / f
+
+    if not file_path.exists():
+        loader.download_post(post, target=file_path)
+    else:
+        ret['exist'].append(True)
+
+    exist_df = pl.DataFrame(ret)
+    if exist_out is not None:
+        exist_df.write_csv(exist_out)
+
+    return exist_df
 
 
 def download_postprocess(output_path: PathLike, new_dir: PathLike,
@@ -68,11 +93,11 @@ def download_postprocess(output_path: PathLike, new_dir: PathLike,
     # ret: return; defaultdict(list): it is easy to group a sequence of key-value pairs into a dictionary of lists
 
     if move:
-        fn: Callable[[Path,Path],None] = os.rename  # fn: function
+        fn: Callable[[Path, Path], None] = os.rename  # fn: function
         v = 'MOVE'
     else:
         import shutil
-        fn: Callable[[Path, Path],Path] = shutil.copy  # copies the file data
+        fn: Callable[[Path, Path], Path] = shutil.copy  # copies the file data
         v = 'COPY'
 
     for path in Path(output_path).iterdir():  # select all folders in output_path
@@ -112,10 +137,10 @@ def download_postprocess(output_path: PathLike, new_dir: PathLike,
 
 
 if __name__ == '__main__':
-    # d = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/json file'
-    # info = create_latestpost_info(d)
+    d = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/json file'
+    info = create_latestpost_info(d)
     output_path = Path('/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/test')
-    # download_image(info, output_path)
+    download_image(info, output_path)
     new_dir = Path('/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/rename_test')
     save_path = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/n_images_video_with_id.csv'
-    df = download_postprocess(output_path, new_dir, out=save_path)
+    download_postprocess(output_path, new_dir, out=save_path)
