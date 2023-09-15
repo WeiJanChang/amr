@@ -239,7 +239,7 @@ def printdf(df: pl.DataFrame,
 
 
 if __name__ == '__main__':
-    d = '/Users/wei/Documents/CARA Network/AMR /AMR Instagram data/json file'
+    d = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/json file'
     ify = load_from_directory(d)
     info = [it.collect_latest_posts() for it in ify]
     ret = LatestPostInfo.concat(info)  # concat 11 json files
