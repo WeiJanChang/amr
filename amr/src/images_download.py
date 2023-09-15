@@ -1,6 +1,7 @@
 import collections
 import os
 import polars as pl
+import matplotlib.pyplot as plt
 import time
 from pathlib import Path
 from typing import Union, Callable
@@ -136,11 +137,24 @@ def download_postprocess(output_path: PathLike, new_dir: PathLike,
     return df
 
 
+def preview_images(images_folder: PathLike):
+    jpg_files = images_folder.glob("*.jpg")
+    for i in jpg_files:
+        jpg_name = str(i).split('/')[-1].split('.')[0]
+        image = plt.imread(i)  # imread return np.array
+        plt.imshow(image)
+        plt.title(jpg_name)
+        plt.show()
+
+
 if __name__ == '__main__':
-    d = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/json file'
-    info = create_latestpost_info(d)
-    output_path = Path('/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/test')
-    download_image(info, output_path)
+    # d = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/json file'
+    # info = create_latestpost_info(d)
+    # output_path = Path('/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/test')
+    # download_image(info, output_path)
     new_dir = Path('/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/rename_test')
-    save_path = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/n_images_video_with_id.csv'
-    download_postprocess(output_path, new_dir, out=save_path)
+    # save_path = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/n_images_video_with_id.csv'
+    # download_postprocess(output_path, new_dir, out=save_path)
+
+    file = '/Users/wei/Python/caranetwork/amr/src/original_instagram_data.xlsx'
+    preview_images(new_dir)
