@@ -10,7 +10,6 @@ from instaloader import InstaloaderContext, Instaloader, InstaloaderException, C
 from amr.src.Ig_info import load_from_directory, LatestPostInfo
 
 # todo: download images and video only with all enlgish Caption and hashtags,
-#  preview jpgs in python,
 PathLike = Union[Path | str]
 
 
@@ -18,11 +17,14 @@ def create_latestpost_info(directory: PathLike) -> LatestPostInfo:
     ify = load_from_directory(directory)
     info = [it.collect_latest_posts() for it in ify]
     ret = LatestPostInfo.concat(info)  # concat 11 json files
+
     return ret.remove_unused_fields().remove_duplicate()
 
 
 def download_image(info: LatestPostInfo, output_path: PathLike, error_out: PathLike = None):
     """
+    todo: create succ, connection error, post unavailable
+
     convert LatestPostInfo to polars df. get all ids and urls from df.
     for each download using _download and save images and videos to output_path
 
@@ -32,24 +34,28 @@ def download_image(info: LatestPostInfo, output_path: PathLike, error_out: PathL
     :return:
     """
     ret = collections.defaultdict(list)
+
     df = info.to_dataframe()
     loader = instaloader.Instaloader(save_metadata=False)
     context: InstaloaderContext = loader.context
     for i in df.iter_rows(named=True):
         id = i['id']  # type: str
         url = i['url']
+        ret['id'].append(id)
+
         try:
             _download(loader, context, id, url, output_path)
-            ret['download fail'].append(False)
+            ret['download status'].append('successful')
         except ConnectionException as e:
             print(f'{id} fail connection')
             print(repr(e))  # repr:representation. return a string
-            ret['download fail'].append(True)
+            ret['download status'].append('connection_error')
 
         except InstaloaderException as e:
             print(f'{id} download fail')
             print(repr(e))
-            ret['download fail'].append(True)
+            ret['download status'].append('post_unavailable')
+        break
     error_df = pl.DataFrame(ret)
     if error_out is not None:
         error_df.write_csv(error_out)
@@ -147,14 +153,25 @@ def preview_images(images_folder: PathLike):
         plt.show()
 
 
-if __name__ == '__main__':
-    # d = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/json file'
-    # info = create_latestpost_info(d)
-    # output_path = Path('/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/test')
-    # download_image(info, output_path)
-    new_dir = Path('/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/rename_test')
-    # save_path = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/n_images_video_with_id.csv'
-    # download_postprocess(output_path, new_dir, out=save_path)
+def merge_all(original_df: PathLike = Path,
+              post_pro_df3: PathLike = Path) -> pl.DataFrame:
+    # original_df =
+    # post_pro_df3 =
+    # merge_df = original_df.join(post_pro_df3, on='id')
 
-    file = '/Users/wei/Python/caranetwork/amr/src/original_instagram_data.xlsx'
-    preview_images(new_dir)
+    # return merge_df
+    pass
+
+
+if __name__ == '__main__':
+    d = '/Users/wei/Documents/cara_network/amr_igdata/json file'
+    info = create_latestpost_info(d)
+    output_path = Path('/Users/wei/Documents/cara_network/amr_igdata/test')
+    error_out = Path('/Users/wei/Documents/cara_network/amr_igdata/error_out_test.csv')
+    download_image(info, output_path, error_out)
+    new_dir = Path('/Users/wei/Documents/cara_network/amr_igdata/rename_test')
+    save_path = '/Users/wei/Documents/cara_network/amr_igdata/output/n_images_video_with_id.csv'
+    ret = download_postprocess(output_path, new_dir, out=save_path)
+
+    # file = '/Users/wei/Python/caranetwork/amr/src/original_instagram_data.xlsx'
+    # preview_images(new_dir)
