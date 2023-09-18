@@ -34,16 +34,12 @@ def merge_all(dir_path: PathLike, final_out: PathLike = None) -> pl.DataFrame:
         return label_df
 
     final_df = select_images(dir_path)
-    print(final_df)
     final_df = merge_df1.join(final_df, on='id', how='outer')
-    print(final_df)
-
     if final_out is not None:
         final_df.write_excel(final_out)
 
 
 if __name__ == '__main__':
-
     dir_path = Path('/Users/wei/Documents/cara_network/amr_igdata/output')
     final_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_test.xlsx')
     merge_all(dir_path, final_out)
