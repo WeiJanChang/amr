@@ -23,8 +23,6 @@ def create_latestpost_info(directory: PathLike) -> LatestPostInfo:
 
 def download_image(info: LatestPostInfo, output_path: PathLike, error_out: PathLike = None):
     """
-    todo: create succ, connection error, post unavailable
-
     convert LatestPostInfo to polars df. get all ids and urls from df.
     for each download using _download and save images and videos to output_path
 
@@ -55,7 +53,7 @@ def download_image(info: LatestPostInfo, output_path: PathLike, error_out: PathL
             print(f'{id} download fail')
             print(repr(e))
             ret['download status'].append('post_unavailable')
-        break
+        time.sleep(5)
     error_df = pl.DataFrame(ret)
     if error_out is not None:
         error_df.write_csv(error_out)
@@ -143,16 +141,6 @@ def download_postprocess(output_path: PathLike, new_dir: PathLike,
     return df
 
 
-def preview_images(images_folder: PathLike):
-    jpg_files = images_folder.glob("*.jpg")
-    for i in jpg_files:
-        jpg_name = str(i).split('/')[-1].split('.')[0]
-        image = plt.imread(i)  # imread return np.array
-        plt.imshow(image)
-        plt.title(jpg_name)
-        plt.show()
-
-
 def merge_all(original_df: PathLike = Path,
               post_pro_df3: PathLike = Path) -> pl.DataFrame:
     # original_df =
@@ -166,12 +154,9 @@ def merge_all(original_df: PathLike = Path,
 if __name__ == '__main__':
     d = '/Users/wei/Documents/cara_network/amr_igdata/json file'
     info = create_latestpost_info(d)
-    output_path = Path('/Users/wei/Documents/cara_network/amr_igdata/test')
-    error_out = Path('/Users/wei/Documents/cara_network/amr_igdata/error_out_test.csv')
+    output_path = Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images_with_dir')
+    error_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/error_out_test.csv')
     download_image(info, output_path, error_out)
-    new_dir = Path('/Users/wei/Documents/cara_network/amr_igdata/rename_test')
+    new_dir = Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images')
     save_path = '/Users/wei/Documents/cara_network/amr_igdata/output/n_images_video_with_id.csv'
     ret = download_postprocess(output_path, new_dir, out=save_path)
-
-    # file = '/Users/wei/Python/caranetwork/amr/src/original_instagram_data.xlsx'
-    # preview_images(new_dir)
