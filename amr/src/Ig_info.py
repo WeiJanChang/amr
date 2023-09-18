@@ -38,14 +38,13 @@ Step IV: Assign images to different categories below
 import json
 import re
 from copy import deepcopy  # copy an object which is completely independent of the original object
-from os import path
 from pathlib import Path
-from typing import TypedDict, Any, NamedTuple, Optional, List
-
-import instaloader
+from typing import TypedDict, Any, NamedTuple, Optional, List, Union
 import pandas as pd
 # Namedtuple is accessible like dict (key-value pairs) and is immutable(unchangeable)
 import polars as pl
+
+PathLike = Union[Path | str]
 
 
 class PostDict(TypedDict):  # topPosts
@@ -216,9 +215,21 @@ def load_from_directory(d: Path | str) -> list[IgInfoFactory]:
     return [IgInfoFactory.load(f) for f in Path(d).glob('*.json')]
 
 
-def load_from_excel(f: Path) -> LatestPostInfo:
+def load_from_excel(dir_path: PathLike, cara_out: PathLike = None) -> LatestPostInfo:  # ? pd.DataFrame
     """TODO 從有的excel 對應到latestpostinfo, 找資料"""
-    pass
+    cara_df = pd.read_excel(dir_path / 'Instagram data with category_29 Aug.xlsx')
+    cara_df = pl.DataFrame(cara_df)
+    original_df = pl.read_excel(dir_path / 'original_instagram_data.xlsx')
+    merge_df = cara_df.join(original_df, on=['url'], how='inner')
+    cara_df = merge_df.to_pandas()
+    cara_df['date'] = pd.to_datetime(cara_df['timestamp'])
+    cara_df['year'] = cara_df['date'].dt.year
+    cara_df['month'] = cara_df['date'].dt.month
+    cara_df['date'] = cara_df['date'].dt.tz_localize(None)
+    if cara_out is not None:
+        cara_df.to_excel(cara_out)
+
+    return cara_df
 
 
 # ==== #
@@ -239,11 +250,14 @@ def printdf(df: pl.DataFrame,
 
 
 if __name__ == '__main__':
-    d = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/json file'
-    ify = load_from_directory(d)
-    info = [it.collect_latest_posts() for it in ify]
-    ret = LatestPostInfo.concat(info)  # concat 11 json files
-    ret = ret.remove_unused_fields()
-    ret.to_dataframe().write_excel('original_instagram_data.xlsx')
-    ret.contain_duplicated()
-    ret.remove_duplicate()
+    # d = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/json file'
+    # ify = load_from_directory(d)
+    # info = [it.collect_latest_posts() for it in ify]
+    # ret = LatestPostInfo.concat(info)  # concat 11 json files
+    # ret = ret.remove_unused_fields()
+    # ret.to_dataframe().write_excel('original_instagram_data.xlsx')
+    # ret.contain_duplicated()
+    # ret.remove_duplicate()
+    dir_path = Path('/Users/wei/Documents/cara_network/amr_igdata/output')
+    # cara_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_609posts_data.xlsx', index=False)
+    load_from_excel(dir_path)
