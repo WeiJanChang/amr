@@ -217,7 +217,7 @@ def load_from_directory(d: Path | str) -> list[IgInfoFactory]:
 
 def load_from_excel(dir_path: PathLike, cara_out: PathLike = None) -> LatestPostInfo:  # ? pd.DataFrame
     """TODO 從有的excel 對應到latestpostinfo, 找資料"""
-    cara_df = pd.read_excel(dir_path / 'Instagram data with category_29 Aug.xlsx')
+    cara_df = pd.read_csv(dir_path / 'Instagram data with category_29 Aug.csv')
     cara_df = pl.DataFrame(cara_df)
     original_df = pl.read_excel(dir_path / 'original_instagram_data.xlsx')
     merge_df = cara_df.join(original_df, on=['url'], how='inner')
@@ -227,7 +227,7 @@ def load_from_excel(dir_path: PathLike, cara_out: PathLike = None) -> LatestPost
     cara_df['month'] = cara_df['date'].dt.month
     cara_df['date'] = cara_df['date'].dt.tz_localize(None)
     if cara_out is not None:
-        cara_df.to_excel(cara_out)
+        cara_df.to_csv(cara_out)
 
     return cara_df
 
@@ -259,5 +259,5 @@ if __name__ == '__main__':
     # ret.contain_duplicated()
     # ret.remove_duplicate()
     dir_path = Path('/Users/wei/Documents/cara_network/amr_igdata/output')
-    # cara_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_609posts_data.xlsx', index=False)
-    load_from_excel(dir_path)
+    cara_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_609posts_data.csv', index=False)
+    load_from_excel(dir_path,cara_out)
