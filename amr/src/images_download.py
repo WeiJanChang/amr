@@ -1,14 +1,12 @@
 import collections
 import os
 import polars as pl
-import matplotlib.pyplot as plt
 import time
 from pathlib import Path
 from typing import Union, Callable
 import instaloader
 from instaloader import InstaloaderContext, Instaloader, InstaloaderException, ConnectionException
-from amr.src.Ig_info import load_from_directory, LatestPostInfo
-
+from Ig_info import LatestPostInfo, load_from_directory
 # todo: download images and video only with all enlgish Caption and hashtags,
 PathLike = Union[Path | str]
 
@@ -48,7 +46,6 @@ def download_image(info: LatestPostInfo, output_path: PathLike, error_out: PathL
             print(f'{id} fail connection')
             print(repr(e))  # repr:representation. return a string
             ret['download status'].append('connection_error')
-
         except InstaloaderException as e:
             print(f'{id} download fail')
             print(repr(e))
