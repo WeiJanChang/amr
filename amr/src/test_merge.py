@@ -2,12 +2,13 @@ import collections
 from pathlib import Path
 from typing import Union
 
+import pandas as pd
 import polars as pl
 
 PathLike = Union[Path | str]
 
-messages = {1: 'Humour', 2: 'Shock/disgust/fear', 3: 'Educational/informative',
-            4: 'Personal stories', 5: 'Opportunistic', 6: 'Advocacy', 9: 'Non-selected'}
+messages = {1: 'Humour', 2: 'Shock/Disgust/Fear', 3: 'Educational/Informative',
+            4: 'Personal Stories', 5: 'Opportunistic', 6: 'Advocacy', 9: 'Non-selected'}
 selected_keys = {key: value for key, value in messages.items() if key in [1, 2, 3, 4, 5, 6]}
 
 
@@ -45,7 +46,24 @@ def merge_all(dir_path: PathLike, final_out: PathLike = None) -> pl.DataFrame:
         final_df.write_excel(final_out)
 
 
+def cara_messages(df: pd.DataFrame):
+    from sklearn.metrics import cohen_kappa_score
+    df['cat_1_message'] = df['Cat 1'].map({v: k for k, v in messages.items()})
+    df['wei_message'] = df['Wei Cat 1'].map({v: k for k, v in messages.items()})
+    df['sana_message'] = df['Sana Cat 1'].map({v: k for k, v in messages.items()})
+    df.fillna(0, inplace=True)
+    # Calculate Cohen's Kappa
+    kappa_cat1_wei = cohen_kappa_score(df['cat_1_message'], df['wei_message'])
+    print(f"Cohen's Kappa between cat_1_message and wei_message: {kappa_cat1_wei}")
+
+    kappa_cat1_sana = cohen_kappa_score(df['cat_1_message'], df['sana_message'])
+    print(f"Cohen's Kappa between cat_1_message and sana_message: {kappa_cat1_sana}")
+
+
+
 if __name__ == '__main__':
-    dir_path = Path('/Users/wei/Documents/cara_network/amr_igdata/output')
-    final_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_test.xlsx')
-    merge_all(dir_path, final_out)
+    # dir_path = Path('/Users/wei/Documents/cara_network/amr_igdata/output')
+    # final_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_test.xlsx')
+    # merge_all(dir_path, final_out)
+    df = pd.read_excel("/Users/wei/Documents/cara_network/amr_igdata/kappa_test.xlsx")
+    cara_messages(df)
