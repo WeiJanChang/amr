@@ -7,7 +7,7 @@ from typing import Union, Callable
 import instaloader
 from instaloader import InstaloaderContext, Instaloader, InstaloaderException, ConnectionException
 from Ig_info import LatestPostInfo, load_from_directory
-# todo: download images and video only with all enlgish Caption and hashtags,
+
 PathLike = Union[Path | str]
 
 
@@ -51,6 +51,7 @@ def download_image(info: LatestPostInfo, output_path: PathLike, error_out: PathL
             print(repr(e))
             ret['download status'].append('post_unavailable')
         time.sleep(5)
+        continue
     error_df = pl.DataFrame(ret)
     if error_out is not None:
         error_df.write_csv(error_out)
@@ -80,6 +81,7 @@ def _download(loader: Instaloader, context: InstaloaderContext, post_id: str, po
         loader.download_post(post, target=file_path)
     else:
         ret['exist'].append(True)
+        print(f'id exists already')
 
     exist_df = pl.DataFrame(ret)
     if exist_out is not None:
@@ -149,7 +151,7 @@ def merge_all(original_df: PathLike = Path,
 
 
 if __name__ == '__main__':
-    d = '/Users/wei/Documents/cara_network/amr_igdata/json file'
+    d = '/Users/wei/Documents/cara_network/amr_igdata/json_file'
     info = create_latestpost_info(d)
     output_path = Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images_with_dir')
     error_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/error_out_test.csv')
