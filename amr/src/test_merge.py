@@ -1,3 +1,7 @@
+"""
+pipeline:
+merge df from Simon's application (images) and original instagram data (11 json files)
+"""
 import collections
 from pathlib import Path
 from typing import Union
