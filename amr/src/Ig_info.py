@@ -36,6 +36,7 @@ Step IV: Assign images to different categories below
 6. Advocacy
 """
 import json
+import pickle
 import re
 from copy import deepcopy  # copy an object which is completely independent of the original object
 from pathlib import Path
@@ -67,19 +68,6 @@ class PostDict(TypedDict):  # topPosts
     timestamp: str
     childPosts: list[...]
     ownerId: str
-
-    def is_selected_image(self, field: str = 'URL') -> bool:
-        # todo
-        p = '/Users/wei/Job Application 2023/CARA Network/AMR /AMR Instagram data/Instagram 1 + 2 with all information (unique URL only).xlsx'
-        df = pd.read_excel(p, engine='openpyxl')
-        image_url = []
-        for it in df[field]:
-            image_url.append(it)
-        print(image_url)
-        # is_selected: bool | None  # not yet implemented
-
-        return
-        pass
 
 
 class DownloadDict(TypedDict):
@@ -156,9 +144,23 @@ class LatestPostInfo(NamedTuple):
 
         return LatestPostInfo(hashtags, batch_data)
 
-    def to_pickle(self):  # It can store image
-        # TODO
-        pass
+    def is_selected_image(self, field: str = 'url') -> bool:
+        # todo: why this function is under PostDict
+        p = '/Users/wei/Documents/cara_network/amr_igdata/output/final_test.xlsx'
+        df = pd.read_excel(p, engine='openpyxl')
+        image_url = []
+        # for it in df[field]:
+        #     image_url.append(it)
+        for index, row in df.iterrows():
+            if '1' in row['selected_images']:
+                image_url.append(row['url'])
+
+        #is_selected: bool | None  # not yet implemented
+
+
+def to_pickle(self):  # It can store image
+    # todo:image is store as array, so save this array into pickle
+    pass
 
 
 class IgInfoFactory:
@@ -250,14 +252,17 @@ def printdf(df: pl.DataFrame,
 
 
 if __name__ == '__main__':
-    # d = '/Users/wei/Documents/CARA Network/AMR/AMR Instagram data/json file'
-    # ify = load_from_directory(d)
-    # info = [it.collect_latest_posts() for it in ify]
-    # ret = LatestPostInfo.concat(info)  # concat 11 json files
-    # ret = ret.remove_unused_fields()
+    d = '/Users/wei/Documents/cara_network/amr_igdata/json_file'
+    ify = load_from_directory(d)
+    info = [it.collect_latest_posts() for it in ify]
+    ret = LatestPostInfo.concat(info)  # concat 11 json files
+    ret = ret.remove_unused_fields()
+    ret.is_selected_image()
+
     # ret.to_dataframe().write_excel('original_instagram_data.xlsx')
     # ret.contain_duplicated()
     # ret.remove_duplicate()
-    dir_path = Path('/Users/wei/Documents/cara_network/amr_igdata/output')
-    cara_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_609posts_data.csv', index=False)
-    load_from_excel(dir_path,cara_out)
+    # dir_path = Path('/Users/wei/Documents/cara_network/amr_igdata/output')
+    # cara_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_609posts_data.csv', index=False)
+    # load_from_excel(dir_path, cara_out)
+    # ret.is_selected_image()
