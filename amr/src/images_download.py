@@ -32,8 +32,12 @@ def download_image(info: LatestPostInfo, output_path: PathLike, error_out: PathL
     :return:
     """
     ret = collections.defaultdict(list)
-
     df = info.to_dataframe()
+    for path in Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images_with_dir').iterdir():
+        if path.is_dir():
+            downloaded_id = path.name.split('_')[1]
+            df = df.filter(pl.col('id') != downloaded_id)
+
     loader = instaloader.Instaloader(save_metadata=False)
     context: InstaloaderContext = loader.context
     for i in tqdm(df.iter_rows(named=True), total=len(df), desc='Downloading'):
