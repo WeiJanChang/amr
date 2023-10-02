@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Union, Callable
 import instaloader
 from instaloader import InstaloaderContext, Instaloader, InstaloaderException, ConnectionException
+from tqdm import tqdm
+
 from Ig_info import LatestPostInfo, load_from_directory
 
 PathLike = Union[Path | str]
@@ -34,7 +36,7 @@ def download_image(info: LatestPostInfo, output_path: PathLike, error_out: PathL
     df = info.to_dataframe()
     loader = instaloader.Instaloader(save_metadata=False)
     context: InstaloaderContext = loader.context
-    for i in df.iter_rows(named=True):
+    for i in tqdm(df.iter_rows(named=True), total=len(df), desc='Downloading'):
         id = i['id']  # type: str
         url = i['url']
         ret['id'].append(id)
@@ -50,8 +52,7 @@ def download_image(info: LatestPostInfo, output_path: PathLike, error_out: PathL
             print(f'{id} download fail')
             print(repr(e))
             ret['download status'].append('post_unavailable')
-        time.sleep(5)
-        continue
+        time.sleep(3)
     error_df = pl.DataFrame(ret)
     if error_out is not None:
         error_df.write_csv(error_out)
@@ -70,7 +71,6 @@ def _download(loader: Instaloader, context: InstaloaderContext, post_id: str, po
     :param output_path: path
     :return:
     """
-    ret = collections.defaultdict(list)
     shortcode = post_url.split('/')[-2]
     post = instaloader.Post.from_shortcode(context, shortcode)
 
@@ -80,14 +80,7 @@ def _download(loader: Instaloader, context: InstaloaderContext, post_id: str, po
     if not file_path.exists():
         loader.download_post(post, target=file_path)
     else:
-        ret['exist'].append(True)
         print(f'id exists already')
-
-    exist_df = pl.DataFrame(ret)
-    if exist_out is not None:
-        exist_df.write_csv(exist_out)
-
-    return exist_df
 
 
 def download_postprocess(output_path: PathLike, new_dir: PathLike,
