@@ -202,10 +202,8 @@ class IgInfoFactory:
         return re.split(r'\d', self._file, 1)[0]
 
     @property
-    def extract_date(self) -> str:
-        """
-        1/1/2017 - 7/1/2023
-        """
+    def extract_date(self) -> str:  # moved to LatestPost
+        pass
 
     @property
     def download_date(self) -> str:
@@ -270,7 +268,7 @@ if __name__ == '__main__':
     info = [it.collect_latest_posts() for it in ify]
     ret = LatestPostInfo.concat(info)  # concat 11 json files
     ret = ret.remove_unused_fields()
-    ret = ret.extract_date()
+    # ret = ret.extract_date()
     # ret.is_selected_image()
 
     # ret.to_dataframe().write_excel('original_instagram_data.xlsx')
