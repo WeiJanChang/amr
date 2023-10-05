@@ -155,7 +155,21 @@ class LatestPostInfo(NamedTuple):
             if '1' in row['selected_images']:
                 image_url.append(row['url'])
 
-        #is_selected: bool | None  # not yet implemented
+        # is_selected: bool | None  # not yet implemented
+
+    def extract_date(self, start_date='2017/1/1', end_date='2023/7/1') -> 'LatestPostInfo':
+        from datetime import datetime
+        start_date = datetime.strptime(start_date, '%Y/%m/%d')
+        end_date = datetime.strptime(end_date, '%Y/%m/%d')
+        ret = []
+        for it in self.data:
+            date = it['timestamp']
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.000Z')
+
+            if start_date <= date <= end_date:
+                ret.append(it)
+
+        return self._replace(data=ret)
 
 
 def to_pickle(self):  # It can store image
@@ -192,7 +206,6 @@ class IgInfoFactory:
         """
         1/1/2017 - 7/1/2023
         """
-        pass
 
     @property
     def download_date(self) -> str:
@@ -257,11 +270,13 @@ if __name__ == '__main__':
     info = [it.collect_latest_posts() for it in ify]
     ret = LatestPostInfo.concat(info)  # concat 11 json files
     ret = ret.remove_unused_fields()
-    ret.is_selected_image()
+    ret = ret.extract_date()
+    # ret.is_selected_image()
 
     # ret.to_dataframe().write_excel('original_instagram_data.xlsx')
     # ret.contain_duplicated()
     # ret.remove_duplicate()
+
     # dir_path = Path('/Users/wei/Documents/cara_network/amr_igdata/output')
     # cara_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_609posts_data.csv', index=False)
     # load_from_excel(dir_path, cara_out)
