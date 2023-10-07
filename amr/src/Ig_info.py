@@ -144,16 +144,13 @@ class LatestPostInfo(NamedTuple):
 
         return LatestPostInfo(hashtags, batch_data)
 
-    def is_selected_image(self, field: str = 'url') -> bool:
+    def is_selected_image(self) -> 'LatestPostInfo':  # 原本是bool
         # todo: why this function is under PostDict
         p = '/Users/wei/Documents/cara_network/amr_igdata/output/final_test.xlsx'
         df = pd.read_excel(p, engine='openpyxl')
-        image_url = []
-        # for it in df[field]:
-        #     image_url.append(it)
-        for index, row in df.iterrows():
-            if '1' in row['selected_images']:
-                image_url.append(row['url'])
+        selected_df = df[df['selected_images'].str.contains('1')]
+
+        return self._replace(data=selected_df)
 
         # is_selected: bool | None  # not yet implemented
 
@@ -269,7 +266,8 @@ if __name__ == '__main__':
     ret = LatestPostInfo.concat(info)  # concat 11 json files
     ret = ret.remove_unused_fields()
     # ret = ret.extract_date()
-    # ret.is_selected_image()
+    ret = ret.is_selected_image()
+    print(ret)
 
     # ret.to_dataframe().write_excel('original_instagram_data.xlsx')
     # ret.contain_duplicated()
