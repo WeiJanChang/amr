@@ -44,6 +44,7 @@ from typing import TypedDict, Any, NamedTuple, Optional, List, Union
 import pandas as pd
 # Namedtuple is accessible like dict (key-value pairs) and is immutable(unchangeable)
 import polars as pl
+from matplotlib.image import imread
 
 PathLike = Union[Path | str]
 
@@ -169,9 +170,17 @@ class LatestPostInfo(NamedTuple):
         return self._replace(data=ret)
 
 
-def to_pickle(self):  # It can store image
+def to_pickle(images_path: PathLike):  # It can store image
     # todo:image is store as array, so save this array into pickle
-    pass
+    from matplotlib.image import imread  # imread return nparray
+    jpg_files = sorted(images_path.glob("*.jpg"))
+    images_list = []
+    for i, jpg_file in enumerate(jpg_files, start=1):
+        images = imread(jpg_file)
+        images_list.append(images)
+
+    with open('images_list.pkl', 'wb') as file:
+        pickle.dump(images_list, file)
 
 
 class IgInfoFactory:
@@ -267,7 +276,10 @@ if __name__ == '__main__':
     ret = ret.remove_unused_fields()
     # ret = ret.extract_date()
     ret = ret.is_selected_image()
-    print(ret)
+
+    images_path = Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images')
+    image = to_pickle(images_path)
+    print(image)
 
     # ret.to_dataframe().write_excel('original_instagram_data.xlsx')
     # ret.contain_duplicated()
