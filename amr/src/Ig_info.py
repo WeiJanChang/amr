@@ -157,7 +157,7 @@ class LatestPostInfo(NamedTuple):
 
         # is_selected: bool | None  # not yet implemented
 
-    def extract_date(self, start_date='2017/1/1', end_date='2023/7/1') -> 'LatestPostInfo':
+    def extract_date(self, start_date='2017/1/1', end_date='2023/7/2') -> 'LatestPostInfo':
         from datetime import datetime
         start_date = datetime.strptime(start_date, '%Y/%m/%d')
         end_date = datetime.strptime(end_date, '%Y/%m/%d')
@@ -166,7 +166,7 @@ class LatestPostInfo(NamedTuple):
             date = it['timestamp']
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.000Z')
 
-            if start_date <= date <= end_date:
+            if start_date <= date <= end_date:  # include 2017/01/01 and 2023/07/01
                 ret.append(it)
 
         return self._replace(data=ret)
@@ -287,15 +287,16 @@ if __name__ == '__main__':
     info = [it.collect_latest_posts() for it in ify]
     ret = LatestPostInfo.concat(info)  # concat 11 json files
     ret = ret.remove_unused_fields()
-    # ret = ret.extract_date()
-    # ret = ret.is_selected_image()
+    ret = ret.extract_date()
+    ret = ret.is_selected_image()
+    #ret.to_dataframe().write_excel('/Users/wei/Documents/cara_network/amr_igdata/20170101_20230701data.xlsx')
 
-    images_path = Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images')
-    to_pickle(images_path)
-
-    with open('images_list.pkl', 'rb') as file:  # read bites mode
-        load_image = pickle.load(file)
-    print(load_image)
+    # images_path = Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images')
+    # to_pickle(images_path)
+    #
+    # with open('images_list.pkl', 'rb') as file:  # read bites mode
+    #     load_image = pickle.load(file)
+    # print(load_image)
     # ret.to_dataframe().write_excel('original_instagram_data.xlsx')
     # ret.contain_duplicated()
     # ret.remove_duplicate()
