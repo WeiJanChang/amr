@@ -179,14 +179,14 @@ def merge_all(dir_path: PathLike, final_out: PathLike = None) -> pl.DataFrame:
 
 
 if __name__ == '__main__':
-    d = '/Users/wei/Documents/cara_network/amr_igdata/json_file'
-    info = create_latestpost_info(d)
-    output_path = Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images_with_dir')
-    error_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/error_out_test.csv')
-    download_image(info, output_path, error_out)
-    new_dir = Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images')
-    save_path = '/Users/wei/Documents/cara_network/amr_igdata/output/n_images_video_with_id.csv'
-    ret = download_postprocess(output_path, new_dir, out=save_path)
+    # d = '/Users/wei/Documents/cara_network/amr_igdata/json_file'
+    # info = create_latestpost_info(d)
+    # output_path = Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images_with_dir')
+    # error_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/error_out_test.csv')
+    # download_image(info, output_path, error_out)
+    # new_dir = Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images')
+    # save_path = '/Users/wei/Documents/cara_network/amr_igdata/output/n_images_video_with_id.csv'
+    # ret = download_postprocess(output_path, new_dir, out=save_path)
 
     dir_path = Path('/Users/wei/Documents/cara_network/amr_igdata/output')
     final_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_test.xlsx')
