@@ -279,28 +279,3 @@ def printdf(df: pl.DataFrame,
         print(df)
 
         return df.__repr__()
-
-
-if __name__ == '__main__':
-    d = '/Users/wei/Documents/cara_network/amr_igdata/json_file'
-    ify = load_from_directory(d)
-    info = [it.collect_latest_posts() for it in ify]
-    ret = LatestPostInfo.concat(info)  # concat 11 json files
-    ret = ret.remove_unused_fields()
-    ret = ret.extract_date()
-    ret = ret.is_selected_image()
-    # ret.to_dataframe().write_excel('/Users/wei/Documents/cara_network/amr_igdata/20170101_20230701data.xlsx')
-
-    # images_path = Path('/Users/wei/Documents/cara_network/amr_igdata/instagram_images')
-    # to_pickle(images_path)
-    # with open('images_list.pkl', 'rb') as file:  # read bites mode
-    #     load_image = pickle.load(file)
-    # print(load_image)
-    # ret.to_dataframe().write_excel('original_instagram_data.xlsx')
-    # ret.contain_duplicated()
-    # ret.remove_duplicate()
-
-    # dir_path = Path('/Users/wei/Documents/cara_network/amr_igdata/output')
-    # cara_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_609posts_data.csv', index=False)
-    # load_from_excel(dir_path, cara_out)
-    # ret.is_selected_image()

@@ -51,9 +51,3 @@ def merge_all(dir_path: PathLike, final_out: PathLike = None) -> pl.DataFrame:
         final_df.write_parquet(final_out)
 
     return final_df
-
-
-if __name__ == '__main__':
-    dir_path = Path('/Users/wei/Documents/cara_network/amr_igdata/output')
-    final_out = Path('/Users/wei/Documents/cara_network/amr_igdata/output/final_test.parquet')
-    merge_all(dir_path, final_out)
