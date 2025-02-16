@@ -1,7 +1,4 @@
 """
-To evaluate Antimicrobial resistance (AMR) messaging from Instagram.
-To do a content analysis to understand what type of messages (themes) have been used on social media for AMR.
-
 pipeline
 
 Step I. Data was extracted from Instagram using the Apify web tool and downloaded as JSON file
@@ -41,17 +38,17 @@ import pickle
 import re
 from copy import deepcopy  # copy an object which is completely independent of the original object
 from pathlib import Path
-from typing import TypedDict, Any, NamedTuple, Optional, List, Union
+from typing import TypedDict, Any, NamedTuple, Union
 import pandas as pd
 # Namedtuple is accessible like dict (key-value pairs) and is immutable(unchangeable)
 import polars as pl
 from PIL import UnidentifiedImageError
-from matplotlib.image import imread
 
 PathLike = Union[Path | str]
 
 
 class PostDict(TypedDict):  # topPosts
+    # create a dict from json files
     id: str
     type: str
     shortCode: str
@@ -149,7 +146,7 @@ class LatestPostInfo(NamedTuple):
 
     def is_selected_image(self) -> 'LatestPostInfo':  # 原本是bool
         # todo: why this function is under PostDict
-        p = '/Users/wei/Documents/cara_network/amr_igdata/output/final_test.xlsx'
+        p = 'final_test.xlsx'
         df = pd.read_excel(p, engine='openpyxl')
         selected_df = df[df['selected_images'].str.contains('1')]
 
@@ -248,7 +245,7 @@ def load_from_directory(d: Path | str) -> list[IgInfoFactory]:
 
 
 def load_from_excel(dir_path: PathLike, cara_out: PathLike = None) -> LatestPostInfo:  # ? pd.DataFrame
-    """TODO 從有的excel 對應到latestpostinfo, 找資料"""
+    """todo: 從有的excel 對應到latestpostinfo, 找資料"""
     cara_df = pd.read_csv(dir_path / 'Instagram data with category_29 Aug.csv')
     cara_df = pl.DataFrame(cara_df)
     original_df = pl.read_excel(dir_path / 'original_instagram_data.xlsx')

@@ -1,6 +1,6 @@
 # AMR
 
-This project aims to categorise images, videos, and posts related to antimicrobial resistant (AMR) on Instagram using
+This project aims to categorise and evaluate images, videos, and posts related to antimicrobial resistant (AMR) on Instagram using
 Instagram API - Instaloader
 
 ## Installation
