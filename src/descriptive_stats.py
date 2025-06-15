@@ -1,19 +1,16 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
-import numpy as np
 from typing import Optional, List
 
 
 # Category counts
-def plot_descriptive(df: pd.DataFrame, col_name: str, groupby_col: Optional[List[str]] = None):
+def descriptive_stats(df: pd.DataFrame, col_name: str, groupby_col: Optional[List[str]] = None):
     """
     Display and return descriptive statistics (count & percentage) for a column.
     If groupby_col is provided, also show group-wise summary.
 
-    :param df:
-    :param col_name:
-    :param groupby_col:
+    :param df: post_processed_data
+    :param col_name: col for calculate
+    :param groupby_col: group by column(s)
     :return:
     """
     results = {}
@@ -61,4 +58,4 @@ def plot_descriptive(df: pd.DataFrame, col_name: str, groupby_col: Optional[List
 
 if __name__ == '__main__':
     df = pd.read_excel('~/code/amr/test_file/post_processed_data.xlsx')
-    plot_descriptive(df, 'likesCount', groupby_col=['cat', 'year'])
+    df = descriptive_stats(df, 'likesCount', groupby_col=['cat', 'year'])
