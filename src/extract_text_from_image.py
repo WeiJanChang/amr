@@ -1,14 +1,14 @@
 """
 pipeline
-
 Extract texts from images
-
 """
 from pathlib import Path
 from typing import Union, Tuple
 import cv2
 import numpy as np
+import pandas as pd
 import pytesseract
+from tqdm import tqdm
 
 
 def extract_text(file: Union[Path, str],
@@ -27,7 +27,7 @@ def extract_text(file: Union[Path, str],
     img_proc = _preprocess_image(img)
     extract = pytesseract.image_to_string(img_proc, **kwargs)
     has_text = True if len(extract) else False
-    print(f'EXTRACT: {extract}')
+    # print(f'EXTRACT: {extract}')
     if verify_plot:
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots(1, 2)
@@ -50,13 +50,15 @@ def _preprocess_image(image: np.ndarray) -> np.ndarray:
 
 
 if __name__ == '__main__':
-    # run .jpg in files and return img
-    # todo: how to save them into csv and don't return each img. need run them all; create col for images, another col for extract txt
+    # run .jpg in files, return img, and save extracted_text to csv file
 
-    directory = '/Users/wei/Library/CloudStorage/GoogleDrive-wei-jan.chang@ucdconnect.ie/.shortcut-targets-by-id/10hvZ9DULDsQxq93eg2SZ3tFyFCP37DnA/Wei-Jan/Instagram 1+2'
+    directory = 'PATH'
     jpg_files = list(Path(directory).glob('*.jpg'))
 
     results = []
-    for file_path in jpg_files:
-        has_text, extract = extract_text(file_path, config="r'--psm 6'")
-        results.append({'Image_Path': str(file_path), 'Extracted_Text': extract})
+    for file_path in tqdm(jpg_files, desc='Extracting text'):
+        has_text, extract = extract_text(file_path, config="r'--psm 6'", verify_plot=False)
+        results.append({'Image_Path': str(file_path), 'Extracted_Text': extract.strip()})
+
+    df = pd.DataFrame(results)
+    df.to_csv('~/code/amr/test_file/extracted_text.csv', index=False)
