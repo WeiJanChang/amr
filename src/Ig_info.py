@@ -3,34 +3,14 @@ pipeline
 
 Step I. Data was extracted from Instagram using the Apify web tool and downloaded as JSON file
 
-Time frame: 01 Jan 2017 to 01 July 2023
-Language: English
+Time frame: yyyy/mm/dd to yyyy/mm/dd
 
-The 11 hashtags(keywords) are:
-1. AMR
-2. Antimicrobial resistance
-3. Antibiotics
-4. Antimicrobials
-5. Antimicrobial stewardship
-6. Drug resistant
-7. Superbugs
-8. Antibiotic resistance
-9. Infections
-10. Bacterial infections
-11. Antibiotic prescribing
-
-Step II. Combine these 11 json files and find unique id of post
+Step II. Combine json files and find unique id of post
 
 Step III. Select useful image to convey health-related information.
 
-Step IV: Assign images to different categories below
+Step IV: Assign images to different categories
 
-1. The Humour
-2. Shock/Disgust/Fear
-3. Educational/Informative
-4. Personal Stories
-5. Opportunistic
-6. Advocacy
 """
 import collections
 import json
@@ -43,6 +23,7 @@ import pandas as pd
 # Namedtuple is accessible like dict (key-value pairs) and is immutable(unchangeable)
 import polars as pl
 from PIL import UnidentifiedImageError
+from numpy.ma.core import masked_singleton
 
 PathLike = Union[Path | str]
 
@@ -276,3 +257,11 @@ def printdf(df: pl.DataFrame,
         print(df)
 
         return df.__repr__()
+
+
+if __name__ == '__main__':
+    d = 'PATH'
+    ify = load_from_directory(d)
+    info = [it.collect_latest_posts() for it in ify]
+    ret = LatestPostInfo.concat(info)  # concat json files
+    df = ret.remove_unused_fields().remove_duplicate().to_dataframe()
