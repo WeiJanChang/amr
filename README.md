@@ -40,6 +40,16 @@ pip install -r requirements.txt
     df = ret.remove_unused_fields().remove_duplicate().to_dataframe()
 ```
 
+- Next, start downloading images and/or videos, and save any error messages to a CSV file if a download fails.
+
+```
+    d = '[PLEASE ADD YOUR SYSTEM PATH with CORRESPONDING DIRECTORIES]
+    info = create_latestpost_info(d)
+    output_path = '[OUTPUT PATH]'
+    error_out = '[OUTPUT PATH]'
+    download_image(info, output_path=output_path, error_out=error_out)
+```
+
 ## Data Visualisation
 
 ![Example 1](figure/wordcloud.png)
