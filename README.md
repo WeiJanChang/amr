@@ -1,7 +1,7 @@
 # AMR
 
-This project aims to categorise and evaluate images, videos, and posts related to antimicrobial resistant (AMR) on
-Instagram using Instagram API (Instaloader)
+This project aims to categorize and evaluate images, videos, and posts related to antimicrobial resistance (AMR) on
+Instagram, using the Instagram API via Instaloader.
 
 ## Installation
 
@@ -18,21 +18,21 @@ pip install -r requirements.txt
 
 ![Example 2](figure/flowchart.png)
 
-- Using [Apify Scraper](https://console.apify.com/actors/shu8hvrXbJbY3Eb9W/input) to extract data using keywords depends
-  on research purpose and save it as JSON file.
-- Combine json files (each keyword/json file) and find unique id of post
-- Select meaningful images to convey health-related information.
+- Use the [Apify Scraper](https://console.apify.com/actors/shu8hvrXbJbY3Eb9W/input) to extract data based on
+  research-specific keywords, and save the results as JSON files.
+- Combine the JSON files (one per keyword), and extract the unique post IDs.
+- Select meaningful images that effectively convey health-related information.
 - Assign images to different categories
 
 ## Usage
 
 ### Pre-processing
 
-- After extracted and having JSON file by using Apify
-- read directory which including JSON file downloaded and remove unused columns and duplicate id of post. and save it to
-  dataframe
+- After extracting data and obtaining JSON files using Apify, read the directory containing the downloaded JSON files,
+  remove unused columns and duplicate post IDs, and save the result as a DataFrame.
 
 ```
+    from Ig_info import LatestPostInfo, load_from_directory
     d = '[PLEASE ADD YOUR SYSTEM PATH with CORRESPONDING DIRECTORIES]
     ify = load_from_directory(d) # read the JSON files in the directory
     info = [it.collect_latest_posts() for it in ify]
