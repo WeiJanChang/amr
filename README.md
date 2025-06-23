@@ -59,7 +59,9 @@ If you need to extract text from .jpg images automatically, use the `extract_tex
 - Modify the directory variable in the script to point to your folder containing .jpg images.
 - The script will process each image, extract text and save the results as a CSV file
 
-## Descriptive Statistics
+## Statistics
+
+### Descriptive statistics
 
 The descriptive_stats function displays descriptive statistics (count and percentage) for a given column in a DataFrame.
 It also supports group-wise summaries when one or more grouping columns are specified.
@@ -69,6 +71,15 @@ It also supports group-wise summaries when one or more grouping columns are spec
     df = pd.read_excel('~/code/amr/test_file/post_processed_data.xlsx')
     descriptive_stats(df, 'likesCount', groupby_col=['cat', 'year'])
     descriptive_stats(df,col_name='cat')
+```
+
+### Cohen’s kappa
+
+Use this script to calculate Cohen’s kappa, a statistical measure of inter-annotator agreement.
+
+```    
+df = pd.read_excel("~/code/amr/test_file/coders_messages.xlsx")
+cal_kappa(df, coder_1='coder1', coder_2='coder2') # coder_1 and coder_2 are flexible: just pass the column names of any two coders you want to compare.
 ```
 
 ## Data Visualisation
