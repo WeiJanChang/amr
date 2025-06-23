@@ -50,6 +50,15 @@ pip install -r requirements.txt
     download_image(info, output_path=output_path, error_out=error_out)
 ```
 
+### Post-processing
+
+#### Image Text Extraction
+
+If you need to extract text from .jpg images automatically, use the `extract_text_from_image.py` script.
+
+- Modify the directory variable in the script to point to your folder containing .jpg images.
+- The script will process each image, extract text and save the results as a CSV file
+
 ### Descriptive Statistics
 
 The descriptive_stats function displays descriptive statistics (count and percentage) for a given column in a DataFrame.
