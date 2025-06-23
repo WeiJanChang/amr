@@ -59,7 +59,7 @@ If you need to extract text from .jpg images automatically, use the `extract_tex
 - Modify the directory variable in the script to point to your folder containing .jpg images.
 - The script will process each image, extract text and save the results as a CSV file
 
-### Descriptive Statistics
+## Descriptive Statistics
 
 The descriptive_stats function displays descriptive statistics (count and percentage) for a given column in a DataFrame.
 It also supports group-wise summaries when one or more grouping columns are specified.
