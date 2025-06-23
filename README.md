@@ -76,7 +76,9 @@ It also supports group-wise summaries when one or more grouping columns are spec
 ### Cohen’s kappa
 
 Use this script to calculate Cohen’s kappa, a statistical measure of inter-annotator agreement.
+
 - coder_1 and coder_2 are flexible: just pass the column names of any two coders you want to compare.
+
 ```    
 df = pd.read_excel("~/code/amr/test_file/coders_messages.xlsx")
 cal_kappa(df, coder_1='coder1', coder_2='coder2')
