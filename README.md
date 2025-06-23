@@ -50,6 +50,18 @@ pip install -r requirements.txt
     download_image(info, output_path=output_path, error_out=error_out)
 ```
 
+### Descriptive Statistics
+
+The descriptive_stats function displays descriptive statistics (count and percentage) for a given column in a DataFrame.
+It also supports group-wise summaries when one or more grouping columns are specified.
+
+```
+    from descriptive_stats import descriptive_stats
+    df = pd.read_excel('~/code/amr/test_file/post_processed_data.xlsx')
+    descriptive_stats(df, 'likesCount', groupby_col=['cat', 'year'])
+    descriptive_stats(df,col_name='cat')
+```
+
 ## Data Visualisation
 
 ![Example 1](figure/wordcloud.png)

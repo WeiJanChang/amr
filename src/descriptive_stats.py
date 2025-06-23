@@ -1,6 +1,10 @@
 import pandas as pd
 from typing import Optional, List
 
+__all__ = [
+    'descriptive_stats'
+]
+
 
 # Category counts
 def descriptive_stats(df: pd.DataFrame, col_name: str, groupby_col: Optional[List[str]] = None):
@@ -58,4 +62,5 @@ def descriptive_stats(df: pd.DataFrame, col_name: str, groupby_col: Optional[Lis
 
 if __name__ == '__main__':
     df = pd.read_excel('~/code/amr/test_file/post_processed_data.xlsx')
-    df = descriptive_stats(df, 'likesCount', groupby_col=['cat', 'year'])
+    descriptive_stats(df, 'likesCount', groupby_col=['cat', 'year'])
+    descriptive_stats(df, col_name='cat')
