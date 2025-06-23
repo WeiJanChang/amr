@@ -8,7 +8,7 @@ Instagram, using the Instagram API via Instaloader.
 - Create an environment for the required dependencies
 
 ```
-conda create -n [ENV_NAME] python ~=3.10
+conda create -n [ENV_NAME] python =3.10
 conda activate [ENV_NAME]
 cd [CLONED_DIRECTORY]
 pip install -r requirements.txt  
@@ -22,7 +22,8 @@ pip install -r requirements.txt
   research-specific keywords, and save the results as JSON files.
 - Combine the JSON files (one per keyword), and extract the unique post IDs.
 - Select meaningful images that effectively convey health-related information.
-- Assign images to different categories
+- Assign meaningful images to pre-defined
+  categories ([Reference - COVID-19 Public Health Communication on X (Formerly Twitter): Cross-Sectional Study of Message Type, Sentiment, and Source](https://formative.jmir.org/2025/1/e59687))
 
 ## Usage
 
@@ -33,8 +34,9 @@ pip install -r requirements.txt
 
 ```
     from Ig_info import LatestPostInfo, load_from_directory
-    d = '[PLEASE ADD YOUR SYSTEM PATH with CORRESPONDING DIRECTORIES]
-    ify = load_from_directory(d) # read the JSON files in the directory
+    # # Set the directory path to your local JSON files
+    d = 'your/json/folder/path'
+    ify = load_from_directory(d) 
     info = [it.collect_latest_posts() for it in ify]
     ret = LatestPostInfo.concat(info)  # concat json files
     df = ret.remove_unused_fields().remove_duplicate().to_dataframe()
@@ -43,10 +45,10 @@ pip install -r requirements.txt
 - Next, start downloading images and/or videos, and save any error messages to a CSV file if a download fails.
 
 ```
-    d = '[PLEASE ADD YOUR SYSTEM PATH with CORRESPONDING DIRECTORIES]
+    d =  'your/json/folder/path'
     info = create_latestpost_info(d)
-    output_path = '[OUTPUT PATH]'
-    error_out = '[OUTPUT PATH]'
+    output_path = 'your/output/image/folder'
+    error_out = your/error/log.csv'
     download_image(info, output_path=output_path, error_out=error_out)
 ```
 
@@ -64,7 +66,7 @@ If you need to extract text from .jpg images automatically, use the `extract_tex
 ### Descriptive statistics
 
 The descriptive_stats function displays descriptive statistics (count and percentage) for a given column in a DataFrame.
-It also supports group-wise summaries when one or more grouping columns are specified.
+You can modify the grouping column(s) as needed depending on your analysis goals.
 
 ```
     from descriptive_stats import descriptive_stats
@@ -78,6 +80,7 @@ It also supports group-wise summaries when one or more grouping columns are spec
 Use this script to calculate Cohen’s kappa, a statistical measure of inter-annotator agreement.
 
 - coder_1 and coder_2 are flexible: just pass the column names of any two coders you want to compare.
+- Cohen’s kappa value ranges from -1 to 1. Values closer to 1 indicate strong agreement.
 
 ```    
 df = pd.read_excel("~/code/amr/test_file/coders_messages.xlsx")
