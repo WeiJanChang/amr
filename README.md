@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ```
     from Ig_info import LatestPostInfo, load_from_directory
-    # # Set the directory path to your local JSON files
+    # Set the directory path to your local JSON files
     d = 'your/json/folder/path'
     ify = load_from_directory(d) 
     info = [it.collect_latest_posts() for it in ify]
@@ -42,14 +42,27 @@ pip install -r requirements.txt
     df = ret.remove_unused_fields().remove_duplicate().to_dataframe()
 ```
 
-- Next, start downloading images and/or videos, and save any error messages to a CSV file if a download fails.
+- Next, using the `images_download.py` script to start downloading images, videos, and text files, and save them into
+  different folders named by ID. Each folder will be automatically named based on the ID, and the images/videos/text
+  files will also be named accordingly. The
+  download status, including “successful”, “connection_error”, or “post_unavailable”, will be logged and saved into a
+  CSV file.
 
 ```
     d =  'your/json/folder/path'
     info = create_latestpost_info(d)
-    output_path = 'your/output/image/folder'
-    error_out = your/error/log.csv'
-    download_image(info, output_path=output_path, error_out=error_out)
+    downloaded_dir = 'your/output/image/folder'
+    log_download = 'your/download/log.csv'
+    download_image(info, output_path=downloaded_dir, log_download=log_download)
+```
+
+- After downloading, using the same `images_download.py` script to consolidate files from individual ID folders into a
+  single directory, and summarize the number of images and videos per ID.
+
+```
+    overview = 'your/overview/file.csv'
+    ret = download_postprocess(downloaded_dir, new_dir=downloaded_dir, out=overview)
+
 ```
 
 ### Post-processing
